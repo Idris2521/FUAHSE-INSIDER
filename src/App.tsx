@@ -29,8 +29,8 @@ export default function App() {
         try {
           const res = await api.getMe();
           setUser(res.profile);
-        } catch (err) {
-          console.error("Session expired or invalid:", err);
+        } catch {
+          // Token is expired, invalid, or belongs to a cleared session
           setUserToken(null);
           setUser(null);
         }

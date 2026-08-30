@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import path from "path";
+import fs from "fs";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
@@ -229,9 +230,77 @@ const memoryStore: InMemStore = {
   },
 };
 
+const DB_FILE_PATH = path.join(process.cwd(), "fuahse_database.json");
+
+function loadDatabaseFromFile(): void {
+  try {
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        if (Array.isArray(parsed.profiles)) memoryStore.profiles = parsed.profiles;
+        if (Array.isArray(parsed.adminAccounts) && parsed.adminAccounts.length > 0) {
+          memoryStore.adminAccounts = parsed.adminAccounts;
+        }
+        if (Array.isArray(parsed.categories) && parsed.categories.length > 0) {
+          memoryStore.categories = parsed.categories;
+        }
+        if (Array.isArray(parsed.submissions)) memoryStore.submissions = parsed.submissions;
+        if (Array.isArray(parsed.auditLogs)) memoryStore.auditLogs = parsed.auditLogs;
+        if (parsed.settings && typeof parsed.settings === "object") {
+          memoryStore.settings = { ...memoryStore.settings, ...parsed.settings };
+        }
+        if (typeof parsed.followerCounter === "number") {
+          memoryStore.followerCounter = parsed.followerCounter;
+        } else {
+          memoryStore.followerCounter = Math.max(1, memoryStore.profiles.length + 1);
+        }
+        console.log(`[Unified Database] Loaded ${memoryStore.profiles.length} profiles, ${memoryStore.submissions.length} submissions, ${memoryStore.adminAccounts.length} admins from single persistent database.`);
+        return;
+      }
+    }
+  } catch (err) {
+    console.error("[Unified Database] Error reading from database file:", err);
+  }
+
+  // Save initial defaults if file does not exist
+  saveDatabaseToFile();
+}
+
+function saveDatabaseToFile(): void {
+  try {
+    const data = JSON.stringify(memoryStore, null, 2);
+    const tempPath = `${DB_FILE_PATH}.tmp`;
+    fs.writeFileSync(tempPath, data, "utf-8");
+    fs.renameSync(tempPath, DB_FILE_PATH);
+  } catch (err) {
+    console.error("[Unified Database] Error writing to database file:", err);
+  }
+}
+
+function syncDatabaseState(): void {
+  try {
+    if (fs.existsSync(DB_FILE_PATH)) {
+      const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (parsed) {
+        if (Array.isArray(parsed.profiles)) memoryStore.profiles = parsed.profiles;
+        if (Array.isArray(parsed.submissions)) memoryStore.submissions = parsed.submissions;
+        if (Array.isArray(parsed.categories)) memoryStore.categories = parsed.categories;
+        if (Array.isArray(parsed.adminAccounts)) memoryStore.adminAccounts = parsed.adminAccounts;
+        if (Array.isArray(parsed.auditLogs)) memoryStore.auditLogs = parsed.auditLogs;
+        if (parsed.settings) memoryStore.settings = { ...memoryStore.settings, ...parsed.settings };
+        if (typeof parsed.followerCounter === "number") memoryStore.followerCounter = parsed.followerCounter;
+      }
+    }
+  } catch {}
+}
+
 function generateUniqueFollowerId(): string {
+  syncDatabaseState();
   const current = memoryStore.followerCounter;
   memoryStore.followerCounter += 1;
+  saveDatabaseToFile();
   const numStr = String(current).padStart(3, "0");
   return `FOLLOWER-${numStr}`;
 }
@@ -244,6 +313,7 @@ async function recordAudit(
   target_id?: string,
   details?: Record<string, any>
 ) {
+  syncDatabaseState();
   const log: AuditLog = {
     id: crypto.randomUUID(),
     actor_id: actor.id,
@@ -257,6 +327,7 @@ async function recordAudit(
   };
 
   memoryStore.auditLogs.unshift(log);
+  saveDatabaseToFile();
 
   if (supabaseClient) {
     try {
@@ -279,6 +350,9 @@ async function recordAudit(
 
 // Express App Initialization
 async function startServer() {
+  // Load unified single database from disk
+  loadDatabaseFromFile();
+
   // Sync existing data from Supabase if connected
   await syncFromSupabase();
 
@@ -382,6 +456,7 @@ async function startServer() {
 
   // 2. Categories
   app.get("/api/categories", async (req, res) => {
+    syncDatabaseState();
     if (supabaseClient) {
       try {
         const { data, error } = await supabaseClient
@@ -400,6 +475,7 @@ async function startServer() {
   });
 
   app.post("/api/categories", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const { name } = req.body;
     if (!name || typeof name !== "string" || !name.trim()) {
       res.status(400).json({ error: "Category name is required" });
@@ -417,6 +493,7 @@ async function startServer() {
     };
 
     memoryStore.categories.push(newCat);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -438,6 +515,7 @@ async function startServer() {
   });
 
   app.put("/api/categories/:id", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const { id } = req.params;
     const { name, is_active } = req.body;
 
@@ -456,6 +534,7 @@ async function startServer() {
     }
 
     const updated = memoryStore.categories[catIndex];
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -481,6 +560,7 @@ async function startServer() {
   });
 
   app.delete("/api/categories/:id", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const { id } = req.params;
     const isUsed = memoryStore.submissions.some((s) => s.category_id === id);
     if (isUsed) {
@@ -489,6 +569,7 @@ async function startServer() {
     }
 
     memoryStore.categories = memoryStore.categories.filter((c) => c.id !== id);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -512,6 +593,7 @@ async function startServer() {
   // User (Follower) Registration & Authentication
   // ---------------------------------------------------------------------------
   app.post("/api/auth/register", async (req, res) => {
+    syncDatabaseState();
     const { name, age, state, whatsapp_number, password } = req.body;
 
     // Validate inputs
@@ -583,6 +665,7 @@ async function startServer() {
     };
 
     memoryStore.profiles.push({ ...profile, password_hash });
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -618,6 +701,7 @@ async function startServer() {
   });
 
   app.post("/api/auth/login", async (req, res) => {
+    syncDatabaseState();
     const { identifier, password } = req.body;
     if (!identifier || !password) {
       res.status(400).json({ error: "Follower ID or WhatsApp number and Password are required" });
@@ -672,6 +756,7 @@ async function startServer() {
           } else {
             memoryStore.profiles.push(mappedProfile);
           }
+          saveDatabaseToFile();
           user = mappedProfile;
         }
       } catch (err) {
@@ -713,8 +798,13 @@ async function startServer() {
   });
 
   app.get("/api/auth/me", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
-    let profile = memoryStore.profiles.find((p) => p.id === userPayload.userId);
+    let profile = memoryStore.profiles.find(
+      (p) =>
+        p.id === userPayload.userId ||
+        (userPayload.followerId && p.follower_id === userPayload.followerId)
+    );
 
     // If profile not found in memory, try retrieving from Supabase
     if (!profile && supabaseClient) {
@@ -722,7 +812,7 @@ async function startServer() {
         const { data, error } = await supabaseClient
           .from("profiles")
           .select("*")
-          .eq("id", userPayload.userId)
+          .or(`id.eq.${userPayload.userId},follower_id.eq.${userPayload.followerId || userPayload.userId}`)
           .maybeSingle();
 
         if (!error && data) {
@@ -739,6 +829,7 @@ async function startServer() {
             password_hash: data.password_hash,
           };
           memoryStore.profiles.push(profile);
+          saveDatabaseToFile();
         }
       } catch (err) {
         console.error("[Supabase Auth/Me Query Error]", err);
@@ -746,7 +837,7 @@ async function startServer() {
     }
 
     if (!profile) {
-      res.status(404).json({ error: "User profile not found" });
+      res.status(401).json({ error: "Session expired or user profile not found. Please log in again." });
       return;
     }
 
@@ -757,6 +848,7 @@ async function startServer() {
   });
 
   app.put("/api/auth/profile", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     const { name, age, state, whatsapp_number } = req.body;
 
@@ -775,6 +867,7 @@ async function startServer() {
       current.whatsapp_number = whatsapp_number.trim().replace(/[^\d+]/g, "");
     }
     current.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -797,6 +890,7 @@ async function startServer() {
   // Submissions (Follower Endpoints)
   // ---------------------------------------------------------------------------
   app.post("/api/submissions", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     const { category_id, category_name, submission_type, text_content, media_items } = req.body;
 
@@ -857,6 +951,7 @@ async function startServer() {
     };
 
     memoryStore.submissions.unshift(submission);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -888,6 +983,7 @@ async function startServer() {
   });
 
   app.get("/api/my-submissions", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     let userSubmissions = memoryStore.submissions.filter((s) => s.user_id === userPayload.userId);
 
@@ -926,6 +1022,7 @@ async function startServer() {
               memoryStore.submissions.push(item);
             }
           });
+          saveDatabaseToFile();
           userSubmissions = mapped;
         }
       } catch (err) {
@@ -950,6 +1047,7 @@ async function startServer() {
   });
 
   app.get("/api/my-submissions/:id", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     const { id } = req.params;
 
@@ -976,6 +1074,7 @@ async function startServer() {
   });
 
   app.put("/api/my-submissions/:id", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     const { id } = req.params;
     const { text_content, category_name, category_id } = req.body;
@@ -996,6 +1095,7 @@ async function startServer() {
     if (category_name) sub.category_name = category_name;
     if (category_id) sub.category_id = category_id;
     sub.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1014,6 +1114,7 @@ async function startServer() {
   });
 
   app.delete("/api/my-submissions/:id", authenticateUser, async (req, res) => {
+    syncDatabaseState();
     const userPayload = (req as any).user;
     const { id } = req.params;
 
@@ -1030,6 +1131,7 @@ async function startServer() {
     }
 
     memoryStore.submissions.splice(subIndex, 1);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1117,6 +1219,7 @@ async function startServer() {
   // Admin Authentication & Setup
   // ---------------------------------------------------------------------------
   app.post("/api/admin/setup-first-super-admin", async (req, res) => {
+    syncDatabaseState();
     const { name, email, password } = req.body;
 
     const hasSuperAdmin = memoryStore.adminAccounts.some((a) => a.role === "SUPER_ADMIN" && a.status === "active");
@@ -1146,6 +1249,7 @@ async function startServer() {
     };
 
     memoryStore.adminAccounts.push(superAdmin);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1193,6 +1297,7 @@ async function startServer() {
   });
 
   app.post("/api/admin/login", async (req, res) => {
+    syncDatabaseState();
     const { email, password } = req.body;
     if (!email || !password) {
       res.status(400).json({ error: "Email and password are required" });
@@ -1226,6 +1331,7 @@ async function startServer() {
             password_hash: data.password_hash,
           };
           memoryStore.adminAccounts.push(admin);
+          saveDatabaseToFile();
         }
       } catch (err) {
         console.error("[Supabase Admin Login Query Error]", err);
@@ -1270,6 +1376,7 @@ async function startServer() {
   });
 
   app.get("/api/admin/me", authenticateAdmin, (req, res) => {
+    syncDatabaseState();
     const adminPayload = (req as any).admin;
     const admin = memoryStore.adminAccounts.find((a) => a.id === adminPayload.adminId);
     if (!admin) {
@@ -1300,6 +1407,7 @@ async function startServer() {
   // Admin Submissions Moderation (Strict Content Admin Privacy Enforcement)
   // ---------------------------------------------------------------------------
   app.get("/api/admin/submissions", authenticateAdmin, async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { category, type, status, search, page = "1", limit = "20" } = req.query;
 
@@ -1371,6 +1479,7 @@ async function startServer() {
   });
 
   app.get("/api/admin/submissions/:id", authenticateAdmin, async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
 
@@ -1407,6 +1516,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/submissions/:id/status", authenticateAdmin, async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
     const { status, rejection_reason, moderation_notes } = req.body;
@@ -1436,6 +1546,7 @@ async function startServer() {
       sub.posted_by = admin.email;
       sub.posted_at = new Date().toISOString();
     }
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1466,6 +1577,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/submissions/:id/content", authenticateAdmin, async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
     const { text_content, category_name, category_id, moderation_notes } = req.body;
@@ -1482,6 +1594,7 @@ async function startServer() {
     if (category_id) sub.category_id = category_id;
     if (moderation_notes !== undefined) sub.moderation_notes = moderation_notes;
     sub.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1509,6 +1622,7 @@ async function startServer() {
   });
 
   app.delete("/api/admin/submissions/:id", authenticateAdmin, async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
 
@@ -1519,6 +1633,7 @@ async function startServer() {
     }
 
     const removed = memoryStore.submissions.splice(subIndex, 1)[0];
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1581,6 +1696,7 @@ async function startServer() {
   // Admin User Management (SUPER ADMIN & USER ADMIN only)
   // ---------------------------------------------------------------------------
   app.get("/api/admin/users", authenticateAdmin, requireRoles("SUPER_ADMIN", "USER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { search, state, status, page = "1", limit = "20" } = req.query;
 
@@ -1635,6 +1751,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/users/:id/profile", authenticateAdmin, requireRoles("SUPER_ADMIN", "USER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
     const { name, age, state, whatsapp_number } = req.body;
@@ -1651,6 +1768,7 @@ async function startServer() {
     if (state) profile.state = state.trim();
     if (whatsapp_number) profile.whatsapp_number = whatsapp_number.trim().replace(/[^\d+]/g, "");
     profile.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1678,6 +1796,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/users/:id/status", authenticateAdmin, requireRoles("SUPER_ADMIN", "USER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { id } = req.params;
     const { status } = req.body;
@@ -1689,13 +1808,14 @@ async function startServer() {
 
     const profileIndex = memoryStore.profiles.findIndex((p) => p.id === id);
     if (profileIndex === -1) {
-      res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User profile not found" });
       return;
     }
 
     const profile = memoryStore.profiles[profileIndex];
     profile.account_status = status;
     profile.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1723,6 +1843,7 @@ async function startServer() {
   // Super Admin - Admin Accounts Management
   // ---------------------------------------------------------------------------
   app.get("/api/admin/admins", authenticateAdmin, requireRoles("SUPER_ADMIN"), (req, res) => {
+    syncDatabaseState();
     const sanitized = memoryStore.adminAccounts.map((a) => ({
       id: a.id,
       name: a.name,
@@ -1736,6 +1857,7 @@ async function startServer() {
   });
 
   app.post("/api/admin/admins", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const currentAdmin = (req as any).admin;
     const { name, email, password, role } = req.body;
 
@@ -1770,6 +1892,7 @@ async function startServer() {
     };
 
     memoryStore.adminAccounts.push(newAdmin);
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1809,6 +1932,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/admins/:id/role", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const currentAdmin = (req as any).admin;
     const { id } = req.params;
     const { role } = req.body;
@@ -1839,6 +1963,7 @@ async function startServer() {
 
     targetAdmin.role = role as AdminRole;
     targetAdmin.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1863,6 +1988,7 @@ async function startServer() {
   });
 
   app.put("/api/admin/admins/:id/status", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const currentAdmin = (req as any).admin;
     const { id } = req.params;
     const { status } = req.body;
@@ -1893,6 +2019,7 @@ async function startServer() {
 
     targetAdmin.status = status as "active" | "disabled";
     targetAdmin.updated_at = new Date().toISOString();
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1917,6 +2044,7 @@ async function startServer() {
   });
 
   app.delete("/api/admin/admins/:id", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const currentAdmin = (req as any).admin;
     const { id } = req.params;
 
@@ -1938,6 +2066,7 @@ async function startServer() {
     }
 
     const deleted = memoryStore.adminAccounts.splice(adminIndex, 1)[0];
+    saveDatabaseToFile();
 
     if (supabaseClient) {
       try {
@@ -1962,6 +2091,7 @@ async function startServer() {
   // Statistics & Audit Logs
   // ---------------------------------------------------------------------------
   app.get("/api/admin/stats", authenticateAdmin, (req, res) => {
+    syncDatabaseState();
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
 
@@ -1990,6 +2120,7 @@ async function startServer() {
   });
 
   app.get("/api/admin/audit-logs", authenticateAdmin, requireRoles("SUPER_ADMIN"), (req, res) => {
+    syncDatabaseState();
     const { search, action, page = "1", limit = "30" } = req.query;
 
     const pageNum = Math.max(1, parseInt(page as string) || 1);
@@ -2030,10 +2161,12 @@ async function startServer() {
   // Settings API
   // ---------------------------------------------------------------------------
   app.get("/api/settings", (req, res) => {
+    syncDatabaseState();
     res.json({ settings: memoryStore.settings });
   });
 
   app.put("/api/settings", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
     const admin = (req as any).admin;
     const { platform_name, subtitle, whatsapp_channel_url, allow_submissions, max_image_mb, max_video_mb, max_audio_mb } = req.body;
 
@@ -2044,6 +2177,7 @@ async function startServer() {
     if (max_image_mb) memoryStore.settings.max_image_mb = Number(max_image_mb);
     if (max_video_mb) memoryStore.settings.max_video_mb = Number(max_video_mb);
     if (max_audio_mb) memoryStore.settings.max_audio_mb = Number(max_audio_mb);
+    saveDatabaseToFile();
 
     await recordAudit(
       { id: admin.adminId, email: admin.email, role: admin.role },

@@ -207,11 +207,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
 
       const token = getAdminToken();
       if (token) {
-        const meRes = await api.getAdminMe();
-        setAdmin(meRes.admin);
+        try {
+          const meRes = await api.getAdminMe();
+          setAdmin(meRes.admin);
+        } catch {
+          setAdminToken(null);
+          setAdmin(null);
+        }
       }
-    } catch (err) {
-      console.error("Admin init error:", err);
+    } catch {
       setAdminToken(null);
       setAdmin(null);
     } finally {
@@ -240,6 +244,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     } else if (activeTab === "settings" && admin.role === "SUPER_ADMIN") {
       fetchSettings();
     }
+
+    // Auto-polling interval: live sync database state across devices every 4 seconds
+    const interval = setInterval(() => {
+      if (activeTab === "dashboard") {
+        fetchStats();
+        fetchAdminSubmissions();
+      } else if (activeTab === "submissions") {
+        fetchAdminSubmissions();
+      } else if (activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN")) {
+        fetchAdminUsers();
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, [
     admin,
     activeTab,
@@ -710,28 +728,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
           ) : (
             /* Standard Admin Login */
             <form onSubmit={handleAdminLogin} className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-blue-950 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-blue-600" /> Default Master Admin Credentials:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginEmail("admin@fuahse.com");
-                      setLoginPassword("Admin@12345");
-                    }}
-                    className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-[11px] font-bold text-white transition-colors cursor-pointer shadow-xs"
-                  >
-                    Auto Fill
-                  </button>
-                </div>
-                <div className="font-mono text-[11px] space-y-0.5 text-slate-700">
-                  <p>Email: <strong className="text-blue-950">admin@fuahse.com</strong></p>
-                  <p>Password: <strong className="text-blue-950">Admin@12345</strong></p>
-                </div>
-              </div>
-
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
                   Administrator Email
