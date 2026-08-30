@@ -7,14 +7,18 @@ import { api, setUserToken } from "../lib/api";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthSuccess: (profile: UserProfile) => void;
+  onSuccess?: (profile: UserProfile, token?: string) => void;
+  onAuthSuccess?: (profile: UserProfile, token?: string) => void;
+  onRegistrationComplete?: () => void;
   initialMode?: "login" | "register";
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   onClose,
+  onSuccess,
   onAuthSuccess,
+  onRegistrationComplete,
   initialMode = "register",
 }) => {
   const [mode, setMode] = useState<"login" | "register">(initialMode);
@@ -34,7 +38,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   // Post-Registration Success Step
   const [newFollower, setNewFollower] = useState<UserProfile | null>(null);
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const notifyAuthSuccess = (profile: UserProfile, token?: string) => {
+    if (token) {
+      setUserToken(token);
+    }
+    if (onAuthSuccess) onAuthSuccess(profile, token);
+    if (onSuccess) onSuccess(profile, token);
+  };
 
   if (!isOpen) return null;
 
@@ -69,7 +82,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       });
 
       setUserToken(res.token);
+      setRegistrationToken(res.token);
       setNewFollower(res.profile);
+      // Immediately notify app about user authentication
+      notifyAuthSuccess(res.profile, res.token);
       triggerConfetti();
     } catch (err: any) {
       setError(err.message || "Registration failed. Please check your inputs.");
@@ -89,7 +105,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       const res = await api.login(loginIdentifier.trim(), loginPassword);
       setUserToken(res.token);
-      onAuthSuccess(res.profile);
+      notifyAuthSuccess(res.profile, res.token);
       onClose();
     } catch (err: any) {
       setError(err.message || "Login failed. Invalid credentials.");
@@ -108,10 +124,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleFinishRegistration = () => {
     if (newFollower) {
-      onAuthSuccess(newFollower);
+      notifyAuthSuccess(newFollower, registrationToken || undefined);
+      if (onRegistrationComplete) {
+        onRegistrationComplete();
+      }
       onClose();
       setNewFollower(null);
+      setRegistrationToken(null);
     }
+  };
+
+  const handleModalClose = () => {
+    if (newFollower) {
+      notifyAuthSuccess(newFollower, registrationToken || undefined);
+      if (onRegistrationComplete) {
+        onRegistrationComplete();
+      }
+      setNewFollower(null);
+      setRegistrationToken(null);
+    }
+    onClose();
   };
 
   return (
@@ -120,7 +152,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Close Button */}
         <button
           type="button"
-          onClick={onClose}
+          onClick={handleModalClose}
           className="absolute top-5 right-5 p-2 rounded-full bg-stone-800/80 hover:bg-stone-700 text-stone-400 hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />

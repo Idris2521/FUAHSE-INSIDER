@@ -4,7 +4,7 @@ export type AccountStatus = 'active' | 'deactivated' | 'suspended';
 
 export type SubmissionStatus = 'pending' | 'reviewing' | 'approved' | 'rejected' | 'posted';
 
-export type SubmissionType = 'text' | 'image' | 'video' | 'audio';
+export type SubmissionType = 'text' | 'image' | 'video' | 'audio' | 'file';
 
 export interface UserProfile {
   id: string;
@@ -41,8 +41,9 @@ export interface SubmissionMedia {
   id: string;
   submission_id: string;
   file_url: string;
+  file_name?: string;
   storage_path?: string;
-  file_type: 'image' | 'video' | 'audio';
+  file_type: 'image' | 'video' | 'audio' | 'file';
   file_size?: number;
   mime_type?: string;
   created_at: string;

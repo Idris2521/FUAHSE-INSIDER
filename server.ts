@@ -186,10 +186,26 @@ interface InMemStore {
   settings: SystemSettings;
 }
 
+// Password hashing utility
+function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password + "fuahse_salt_2026").digest("hex");
+}
+
+const DEFAULT_SUPER_ADMIN: AdminAccount & { password_hash: string } = {
+  id: "admin-master-001",
+  name: "Lead Editorial Admin",
+  email: "admin@fuahse.com",
+  role: "SUPER_ADMIN",
+  status: "active",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  password_hash: hashPassword("Admin@12345"),
+};
+
 const memoryStore: InMemStore = {
   followerCounter: 1,
   profiles: [],
-  adminAccounts: [],
+  adminAccounts: [DEFAULT_SUPER_ADMIN],
   categories: [
     { id: "cat-1", name: "Gossip", slug: "gossip", is_active: true, created_at: new Date().toISOString() },
     { id: "cat-2", name: "Relationship", slug: "relationship", is_active: true, created_at: new Date().toISOString() },
@@ -212,11 +228,6 @@ const memoryStore: InMemStore = {
     max_audio_mb: 25,
   },
 };
-
-// Password hashing utility
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + "fuahse_salt_2026").digest("hex");
-}
 
 function generateUniqueFollowerId(): string {
   const current = memoryStore.followerCounter;
@@ -617,14 +628,15 @@ async function startServer() {
     const cleanDigits = cleanIdentifier.replace(/[^\d]/g, "");
     const cleanPwdHash = hashPassword(String(password));
 
-    // Try finding user in memory store
+    // Try finding user in memory store by Follower ID, WhatsApp Number, or Name
     let user = memoryStore.profiles.find((p) => {
       const matchFollowerId = p.follower_id.toUpperCase() === cleanIdentifier.toUpperCase();
       const pDigits = p.whatsapp_number.replace(/[^\d]/g, "");
       const matchWhatsApp =
         cleanDigits.length >= 7 &&
         (pDigits === cleanDigits || pDigits.endsWith(cleanDigits) || cleanDigits.endsWith(pDigits));
-      return matchFollowerId || matchWhatsApp;
+      const matchName = p.name.trim().toLowerCase() === cleanIdentifier.toLowerCase();
+      return matchFollowerId || matchWhatsApp || matchName;
     });
 
     // If user is not in memory or doesn't have password_hash, query Supabase cloud database
@@ -634,9 +646,9 @@ async function startServer() {
         if (cleanIdentifier.toUpperCase().startsWith("FOLLOWER-")) {
           query = query.ilike("follower_id", cleanIdentifier);
         } else if (cleanDigits.length >= 7) {
-          query = query.or(`whatsapp_number.ilike.%${cleanDigits}%,whatsapp_number.eq.${cleanIdentifier}`);
+          query = query.or(`whatsapp_number.ilike.%${cleanDigits}%,whatsapp_number.eq.${cleanIdentifier},name.ilike.${cleanIdentifier}`);
         } else {
-          query = query.or(`follower_id.ilike.${cleanIdentifier},whatsapp_number.eq.${cleanIdentifier}`);
+          query = query.or(`follower_id.ilike.${cleanIdentifier},whatsapp_number.eq.${cleanIdentifier},name.ilike.${cleanIdentifier}`);
         }
 
         const { data, error } = await query.limit(1).maybeSingle();
@@ -792,8 +804,8 @@ async function startServer() {
       res.status(400).json({ error: "Category is required" });
       return;
     }
-    if (!submission_type || !["text", "image", "video", "audio"].includes(submission_type)) {
-      res.status(400).json({ error: "Valid submission type (text, image, video, audio) is required" });
+    if (!submission_type || !["text", "image", "video", "audio", "file"].includes(submission_type)) {
+      res.status(400).json({ error: "Valid submission type (text, image, video, audio, file) is required" });
       return;
     }
 
@@ -802,7 +814,7 @@ async function startServer() {
       return;
     }
 
-    if (["image", "video", "audio"].includes(submission_type) && (!media_items || media_items.length === 0) && (!text_content || !text_content.trim())) {
+    if (["image", "video", "audio", "file"].includes(submission_type) && (!media_items || media_items.length === 0) && (!text_content || !text_content.trim())) {
       res.status(400).json({ error: `Please provide a ${submission_type} file or text content` });
       return;
     }
@@ -812,6 +824,9 @@ async function startServer() {
       res.status(404).json({ error: "User profile not found" });
       return;
     }
+
+    userProfile.submission_count = (userProfile.submission_count || 0) + 1;
+    userProfile.updated_at = new Date().toISOString();
 
     const submissionId = crypto.randomUUID();
     const now = new Date().toISOString();
@@ -1038,17 +1053,26 @@ async function startServer() {
 
     // Validate mime types
     const validMimes: Record<string, string[]> = {
-      image: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-      video: ["video/mp4", "video/webm", "video/quicktime"],
-      audio: ["audio/mpeg", "audio/mp3", "audio/wav", "audio/webm", "audio/ogg", "audio/m4a"],
+      image: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"],
+      video: ["video/mp4", "video/webm", "video/quicktime", "video/x-matroska", "video/3gpp"],
+      audio: ["audio/mpeg", "audio/mp3", "audio/wav", "audio/webm", "audio/ogg", "audio/m4a", "audio/aac", "audio/x-m4a"],
+      file: [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+        "application/zip",
+        "application/x-zip-compressed",
+        "application/octet-stream",
+      ],
     };
 
-    if (mime_type && validMimes[file_type] && !validMimes[file_type].includes(mime_type)) {
+    if (mime_type && validMimes[file_type] && !validMimes[file_type].includes(mime_type) && file_type !== "file") {
       res.status(400).json({ error: `Unsupported MIME type '${mime_type}' for ${file_type}` });
       return;
     }
 
-    const cleanExt = (file_name ? path.extname(file_name) : "").replace(/[^a-zA-Z0-9]/g, "") || (file_type === "audio" ? "webm" : file_type === "image" ? "jpg" : "mp4");
+    const cleanExt = (file_name ? path.extname(file_name) : "").replace(/[^a-zA-Z0-9]/g, "") || (file_type === "audio" ? "webm" : file_type === "image" ? "jpg" : file_type === "file" ? "pdf" : "mp4");
     const uniqueFileName = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${cleanExt}`;
     const storagePath = `submissions/${file_type}/${uniqueFileName}`;
 

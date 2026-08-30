@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <!-- Outer Text Paths -->
+    <path id="topTextArc" d="M 50 200 A 150 150 0 0 1 350 200" fill="none" />
+    <path id="bottomTextArc" d="M 350 200 A 150 150 0 0 1 50 200" fill="none" />
+    <path id="innerHealthArc" d="M 135 245 A 65 65 0 0 1 265 245" fill="none" />
+    <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.15" />
+    </filter>
+  </defs>
+
+  <!-- Outer Shadow & White Circle Background -->
+  <circle cx="200" cy="200" r="192" fill="#FFFFFF" stroke="#0f172a" stroke-width="8" filter="url(#badgeShadow)" />
+  <circle cx="200" cy="200" r="172" fill="#F8FAFC" stroke="#0f172a" stroke-width="3" />
+  <circle cx="200" cy="200" r="138" fill="#FFFFFF" stroke="#0f172a" stroke-width="2" />
+
+  <!-- Arched Top Text: FUAHSE INSIDER -->
+  <text font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="28" fill="#0f172a" letter-spacing="3">
+    <textPath href="#topTextArc" startOffset="50%" text-anchor="middle">FUAHSE INSIDER</textPath>
+  </text>
+
+  <!-- Arched Bottom Text: THE CAMPUS MIRROR -->
+  <text font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="22" fill="#0f172a" letter-spacing="2.5">
+    <textPath href="#bottomTextArc" startOffset="50%" text-anchor="middle">THE CAMPUS MIRROR</textPath>
+  </text>
+
+  <!-- Center-Top: Nigerian Coat of Arms Graphic -->
+  <g transform="translate(140, 68) scale(0.6)">
+    <!-- Red Eagle on Top -->
+    <path d="M100 15 L90 5 L75 10 L85 22 L75 25 L88 32 L95 24 L100 35 L105 24 L112 32 L125 25 L115 22 L125 10 L110 5 Z" fill="#DC2626" />
+    <polygon points="96,35 104,35 100,28" fill="#F59E0B" />
+    
+    <!-- Left Horse Rampant (White) -->
+    <path d="M45 100 C30 85 30 60 45 45 C50 40 58 38 65 42 C70 45 72 55 68 65 C62 78 50 88 55 105 C57 110 65 115 62 120 C55 125 45 120 42 110 Z" fill="#F8FAFC" stroke="#0f172a" stroke-width="2.5" />
+    <!-- Left Horse Mane & Tail -->
+    <path d="M45 45 C35 35 30 50 35 65" fill="none" stroke="#0f172a" stroke-width="2" />
+    <path d="M38 95 C25 90 20 110 25 125" fill="none" stroke="#0f172a" stroke-width="2" />
+    
+    <!-- Right Horse Rampant (White) -->
+    <path d="M155 100 C170 85 170 60 155 45 C150 40 142 38 135 42 C130 45 128 55 132 65 C138 78 150 88 145 105 C143 110 135 115 138 120 C145 125 155 120 158 110 Z" fill="#F8FAFC" stroke="#0f172a" stroke-width="2.5" />
+    <!-- Right Horse Mane & Tail -->
+    <path d="M155 45 C165 35 170 50 165 65" fill="none" stroke="#0f172a" stroke-width="2" />
+    <path d="M162 95 C175 90 180 110 175 125" fill="none" stroke="#0f172a" stroke-width="2" />
+
+    <!-- Center Black Shield with Silver Y Pall -->
+    <path d="M72 45 C72 45 100 40 128 45 C128 85 115 110 100 125 C85 110 72 85 72 45 Z" fill="#0f172a" stroke="#F8FAFC" stroke-width="2" />
+    <!-- Silver Y Pall (River Niger & Benue) -->
+    <path d="M78 45 L95 68 L95 118 L105 118 L105 68 L122 45 L112 45 L100 60 L88 45 Z" fill="#F8FAFC" />
+
+    <!-- Green Grassy Base & Wreath -->
+    <ellipse cx="100" cy="126" rx="55" ry="10" fill="#16A34A" stroke="#15803D" stroke-width="1.5" />
+    <circle cx="80" cy="126" r="3" fill="#DC2626" />
+    <circle cx="93" cy="128" r="3" fill="#DC2626" />
+    <circle cx="107" cy="128" r="3" fill="#DC2626" />
+    <circle cx="120" cy="126" r="3" fill="#DC2626" />
+
+    <!-- Motto Banner: UNITY AND FAITH PEACE AND PROGRESS -->
+    <rect x="35" y="132" width="130" height="15" rx="3" fill="#F59E0B" stroke="#B45309" stroke-width="1" />
+    <text x="100" y="143" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="6.5" fill="#78350F" text-anchor="middle" letter-spacing="0.4">UNITY AND FAITH, PEACE AND PROGRESS</text>
+  </g>
+
+  <!-- Center-Bottom: Medical / FUAHSE Seal -->
+  <g transform="translate(200, 248)">
+    <!-- Red Outer Ring -->
+    <circle cx="0" cy="0" r="64" fill="#FFFFFF" stroke="#DC2626" stroke-width="4" />
+    
+    <!-- Royal Blue Inner Disc -->
+    <circle cx="0" cy="0" r="54" fill="#1D4ED8" stroke="#0F172A" stroke-width="2" />
+    
+    <!-- White Horizontal Crossbar -->
+    <rect x="-54" y="-14" width="108" height="28" fill="#FFFFFF" />
+
+    <!-- Medical Wings on Top of Caduceus -->
+    <g transform="translate(0, -32) scale(0.6)">
+      <!-- Left Wing -->
+      <path d="M0 0 C-15 -15 -35 -10 -50 5 C-35 10 -20 12 0 8 Z" fill="#93C5FD" stroke="#1E40AF" stroke-width="2" />
+      <path d="M0 0 C-12 -8 -28 -5 -40 8 C-25 10 -15 10 0 6 Z" fill="#BFDBFE" />
+      <!-- Right Wing -->
+      <path d="M0 0 C15 -15 35 -10 50 5 C35 10 20 12 0 8 Z" fill="#93C5FD" stroke="#1E40AF" stroke-width="2" />
+      <path d="M0 0 C12 -8 28 -5 40 8 C25 10 15 10 0 6 Z" fill="#BFDBFE" />
+    </g>
+
+    <!-- Red Caduceus Staff & Entwined Serpents -->
+    <line x1="0" y1="-36" x2="0" y2="40" stroke="#DC2626" stroke-width="4" stroke-linecap="round" />
+    <circle cx="0" cy="-36" r="4" fill="#DC2626" />
+    
+    <!-- Twin Entwined Serpents -->
+    <path d="M -10 -24 C -20 -15 -5 -6 0 0 C 10 8 20 18 10 28 C 5 33 -5 32 0 38" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" />
+    <path d="M 10 -24 C 20 -15 5 -6 0 0 C -10 8 -20 18 -10 28 C -5 33 5 32 0 38" fill="none" stroke="#DC2626" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Arc Text inside lower badge: Health is Life FUAHSE -->
+    <text font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="12" fill="#0f172a">
+      <textPath href="#innerHealthArc" startOffset="50%" text-anchor="middle">Health is Life</textPath>
+    </text>
+    <text x="0" y="52" font-family="'Plus Jakarta Sans', Arial, sans-serif" font-weight="900" font-size="18" fill="#0f172a" text-anchor="middle" letter-spacing="2">FUAHSE</text>
+  </g>
+</svg>

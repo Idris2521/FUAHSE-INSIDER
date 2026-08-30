@@ -4,6 +4,8 @@ import {
   Image as ImageIcon,
   Video as VideoIcon,
   Mic,
+  FileCode2,
+  Paperclip,
   Square,
   Play,
   Pause,
@@ -17,17 +19,20 @@ import {
   ArrowRight,
   ShieldCheck,
   SendHorizontal,
+  File as FileIcon,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { Category, SubmissionType, UserProfile } from "../types";
 import { api } from "../lib/api";
 import { WhatsAppButton } from "./WhatsAppButton";
+import { FuahseLogo } from "./FuahseLogo";
 
 interface SubmitContentProps {
   user: UserProfile | null;
   onOpenAuth: (mode?: "login" | "register") => void;
   onSubmissionComplete?: () => void;
   onNavigateMySubmissions?: () => void;
+  onNavigateHome?: () => void;
 }
 
 export const SubmitContent: React.FC<SubmitContentProps> = ({
@@ -35,6 +40,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
   onOpenAuth,
   onSubmissionComplete,
   onNavigateMySubmissions,
+  onNavigateHome,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -44,7 +50,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
   // Media state
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaDataUrl, setMediaDataUrl] = useState<string | null>(null);
-  const [mediaType, setMediaType] = useState<"image" | "video" | "audio">("image");
+  const [mediaType, setMediaType] = useState<"image" | "video" | "audio" | "file">("image");
 
   // Audio recording state (Real MediaRecorder API)
   const [isRecording, setIsRecording] = useState(false);
@@ -72,7 +78,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
     api.getCategories().then((res) => {
       const active = res.categories.filter((c) => c.is_active);
       setCategories(active);
-      if (active.length > 0) {
+      if (active.length > 0 && !selectedCategory) {
         setSelectedCategory(active[0].name);
       }
     }).catch((err) => {
@@ -103,9 +109,9 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        setAudioBlob(audioBlob);
-        const url = URL.createObjectURL(audioBlob);
+        const recordedAudioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        setAudioBlob(recordedAudioBlob);
+        const url = URL.createObjectURL(recordedAudioBlob);
         setAudioUrl(url);
 
         // Convert to base64 data url for upload preview
@@ -114,7 +120,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
           setMediaDataUrl(reader.result as string);
           setMediaType("audio");
         };
-        reader.readAsDataURL(audioBlob);
+        reader.readAsDataURL(recordedAudioBlob);
 
         // Stop all audio tracks
         stream.getTracks().forEach((track) => track.stop());
@@ -170,13 +176,13 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
     }
   };
 
-  // Handle File Input Selection (Image / Video / Audio)
+  // Handle File Input Selection (Image / Video / Audio / File)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     // Size check
-    const maxMb = submissionType === "video" ? 50 : submissionType === "audio" ? 25 : 10;
+    const maxMb = submissionType === "video" ? 50 : submissionType === "audio" ? 25 : submissionType === "file" ? 20 : 10;
     if (file.size > maxMb * 1024 * 1024) {
       setErrorMessage(`File exceeds maximum size of ${maxMb}MB`);
       return;
@@ -184,11 +190,13 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
 
     setErrorMessage(null);
     setMediaFile(file);
-    const mType = file.type.startsWith("video")
+    const mType: "image" | "video" | "audio" | "file" = file.type.startsWith("video")
       ? "video"
       : file.type.startsWith("audio")
       ? "audio"
-      : "image";
+      : file.type.startsWith("image")
+      ? "image"
+      : "file";
     setMediaType(mType);
 
     const reader = new FileReader();
@@ -208,13 +216,14 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
     setErrorMessage(null);
 
     if (!user) {
-      onOpenAuth();
+      setErrorMessage("Please create your anonymous Follower ID or log in to preview & submit your story.");
+      onOpenAuth("register");
       return;
     }
 
-    if (!selectedCategory) {
-      setErrorMessage("Please select a category");
-      return;
+    const effectiveCategory = selectedCategory || (categories.length > 0 ? categories[0].name : "General");
+    if (!selectedCategory && effectiveCategory) {
+      setSelectedCategory(effectiveCategory);
     }
 
     if (submissionType === "text" && !textContent.trim()) {
@@ -222,22 +231,25 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       return;
     }
 
-    if (["image", "video", "audio"].includes(submissionType) && !mediaDataUrl && !textContent.trim()) {
-      setErrorMessage(`Please provide a ${submissionType} or text content`);
+    if (["image", "video", "audio", "file"].includes(submissionType) && !mediaDataUrl && !textContent.trim()) {
+      setErrorMessage(`Please provide a ${submissionType} file or write a message`);
       return;
     }
 
     setStep("preview");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleFinalSubmit = async () => {
     if (!user) {
-      onOpenAuth();
+      onOpenAuth("register");
       return;
     }
 
     setIsSubmitting(true);
-    setUploadProgress(20);
+    setUploadProgress(25);
     setErrorMessage(null);
 
     try {
@@ -245,10 +257,19 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
 
       // 1. Upload media if present
       if (mediaDataUrl) {
-        setUploadProgress(40);
+        setUploadProgress(50);
+        const defaultName =
+          mediaType === "audio"
+            ? "voice-note.webm"
+            : mediaType === "video"
+            ? "video-clip.mp4"
+            : mediaType === "file"
+            ? "document.pdf"
+            : "photo.jpg";
+
         const resMedia = await api.uploadMedia({
           file_data: mediaDataUrl,
-          file_name: mediaFile?.name || (mediaType === "audio" ? "voice-note.webm" : "upload.media"),
+          file_name: mediaFile?.name || defaultName,
           file_type: mediaType,
           mime_type: mediaFile?.type || (mediaType === "audio" ? "audio/webm" : undefined),
         });
@@ -262,13 +283,13 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
         });
       }
 
-      setUploadProgress(75);
+      setUploadProgress(80);
 
       // 2. Create submission record
       const catObj = categories.find((c) => c.name === selectedCategory);
       const res = await api.submitContent({
         category_id: catObj?.id,
-        category_name: selectedCategory,
+        category_name: selectedCategory || "General",
         submission_type: submissionType,
         text_content: textContent,
         media_items: uploadedMediaItems,
@@ -277,13 +298,16 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       setUploadProgress(100);
       setLastSubmissionId(res.submission.id);
       setStep("success");
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
 
       try {
         confetti({
-          particleCount: 100,
-          spread: 80,
+          particleCount: 90,
+          spread: 70,
           origin: { y: 0.5 },
-          colors: ["#e11d48", "#10b981", "#38bdf8", "#fbbf24"],
+          colors: ["#2563eb", "#0284c7", "#10b981", "#3b82f6"],
         });
       } catch (_) {}
     } catch (err: any) {
@@ -301,6 +325,9 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
     setStep("compose");
     setErrorMessage(null);
     setLastSubmissionId(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
@@ -309,55 +336,71 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       {/* STEP 3: SUBMISSION SUCCESS SCREEN */}
       {/* ------------------------------------------------------------- */}
       {step === "success" && (
-        <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-2xl animate-fadeIn">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div className="bg-white border border-blue-100 rounded-3xl p-6 sm:p-10 text-center space-y-6 shadow-sm animate-fadeIn">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
             <CheckCircle2 className="w-12 h-12" />
           </div>
 
           <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-2">
-              <Sparkles className="w-3.5 h-3.5" />
-              Submission Received
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200 mb-2">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              Submission Received & Queued
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Gossip & Story Dispatched!
+            <h2 className="text-2xl sm:text-3xl font-black text-blue-950">
+              Story Dispatched to The Mirror!
             </h2>
-            <p className="text-sm text-stone-400 mt-2 max-w-md mx-auto">
-              Your submission has been queued for review. Our administrators will review and publish selected content to the WhatsApp Channel.
+            <p className="text-sm text-slate-600 mt-2 max-w-md mx-auto font-medium">
+              Your submission has been securely stored. Our admin moderators will review, accept or reject, and publish approved gossip to the WhatsApp Channel.
             </p>
           </div>
 
-          <div className="bg-stone-950 p-4 rounded-2xl border border-stone-800 text-left max-w-md mx-auto space-y-2 text-xs">
-            <div className="flex justify-between items-center text-stone-400">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left max-w-md mx-auto space-y-2 text-xs">
+            <div className="flex justify-between items-center text-slate-600">
               <span>Submitted As:</span>
-              <span className="font-mono font-bold text-rose-400">{user?.follower_id}</span>
+              <span className="font-mono font-bold text-blue-700">{user?.follower_id}</span>
             </div>
-            <div className="flex justify-between items-center text-stone-400">
+            <div className="flex justify-between items-center text-slate-600">
               <span>Category:</span>
-              <span className="font-semibold text-white">{selectedCategory}</span>
+              <span className="font-semibold text-slate-900">{selectedCategory}</span>
             </div>
-            <div className="flex justify-between items-center text-stone-400">
-              <span>Current Status:</span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 uppercase">
-                Pending Review
+            {lastSubmissionId && (
+              <div className="flex justify-between items-center text-slate-600">
+                <span>Submission Reference:</span>
+                <span className="font-mono font-bold text-slate-800">#{lastSubmissionId.slice(0, 8)}</span>
+              </div>
+            )}
+            <div className="flex justify-between items-center text-slate-600">
+              <span>Review Status:</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-200 uppercase">
+                Pending Admin Review
               </span>
             </div>
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {onNavigateHome && (
+              <button
+                type="button"
+                id="btn-return-home-success"
+                onClick={onNavigateHome}
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors shadow-md shadow-blue-600/20"
+              >
+                Return to Home
+              </button>
+            )}
             <button
               type="button"
               id="btn-view-my-submissions-success"
-              onClick={onSubmissionComplete}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-white font-bold text-sm border border-stone-700 transition-colors"
+              onClick={onNavigateMySubmissions || onSubmissionComplete}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white hover:bg-blue-50 text-blue-950 font-bold text-sm border border-slate-200 hover:border-blue-300 transition-colors shadow-xs"
             >
-              Track in My Submissions
+              Track My Submissions
             </button>
             <WhatsAppButton variant="primary" className="w-full sm:w-auto" />
             <button
               type="button"
               onClick={handleResetForm}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm transition-colors"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm border border-slate-200 transition-colors"
             >
               Submit Another
             </button>
@@ -369,19 +412,19 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       {/* STEP 2: LIVE PREVIEW BEFORE SUBMIT */}
       {/* ------------------------------------------------------------- */}
       {step === "preview" && (
-        <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+        <div className="bg-white border border-blue-100 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <span className="text-xs uppercase tracking-wider font-bold text-stone-500">
+              <span className="text-xs uppercase tracking-wider font-bold text-blue-600">
                 Step 2 of 2
               </span>
-              <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                <Eye className="w-6 h-6 text-rose-500" />
+              <h2 className="text-xl sm:text-2xl font-black text-blue-950 flex items-center gap-2">
+                <Eye className="w-6 h-6 text-blue-600" />
                 Review Your Submission
               </h2>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-stone-950 border border-stone-800 text-xs font-mono font-bold text-rose-400">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-900">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>{user?.follower_id}</span>
             </div>
           </div>
@@ -389,21 +432,21 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
           <div className="space-y-4">
             {/* Category & Type badges */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200">
                 Category: {selectedCategory}
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-stone-800 text-stone-300 border border-stone-700 capitalize">
-                Format: {submissionType === "audio" ? "Voice Note / Audio" : submissionType}
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 capitalize">
+                Format: {submissionType === "audio" ? "Voice Note / Audio" : submissionType === "file" ? "Document / File" : submissionType}
               </span>
             </div>
 
             {/* Text Preview */}
             {textContent && (
-              <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800">
-                <div className="text-xs uppercase tracking-wider font-bold text-stone-500 mb-2">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-2">
                   Message / Text Content
                 </div>
-                <p className="text-sm text-stone-200 whitespace-pre-wrap leading-relaxed">
+                <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-medium">
                   {textContent}
                 </p>
               </div>
@@ -411,10 +454,10 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
 
             {/* Media Preview */}
             {mediaDataUrl && (
-              <div className="p-4 rounded-2xl bg-stone-950 border border-stone-800 space-y-3">
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-wider font-bold text-stone-500">
-                    Attached Media
+                  <span className="text-xs uppercase tracking-wider font-bold text-slate-500">
+                    Attached Media / File
                   </span>
                   <button
                     type="button"
@@ -423,19 +466,19 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                       setMediaFile(null);
                       resetRecording();
                     }}
-                    className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-bold"
+                    className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 font-bold"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    Remove Media
+                    Remove
                   </button>
                 </div>
 
                 {mediaType === "image" && (
-                  <div className="rounded-xl overflow-hidden max-h-96 bg-black flex items-center justify-center">
+                  <div className="rounded-xl overflow-hidden max-h-96 bg-slate-100 flex items-center justify-center p-2 border border-slate-200">
                     <img
                       src={mediaDataUrl}
                       alt="Submission preview"
-                      className="max-h-96 w-auto object-contain rounded-lg"
+                      className="max-h-96 w-auto object-contain rounded-lg shadow-sm"
                       referrerPolicy="no-referrer"
                     />
                   </div>
@@ -452,8 +495,19 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                 )}
 
                 {mediaType === "audio" && (
-                  <div className="p-4 rounded-xl bg-stone-900 border border-stone-800 flex items-center gap-3">
+                  <div className="p-4 rounded-xl bg-white border border-blue-200 flex items-center gap-3 shadow-xs">
+                    <Mic className="w-5 h-5 text-blue-600 shrink-0" />
                     <audio src={mediaDataUrl} controls className="w-full" />
+                  </div>
+                )}
+
+                {mediaType === "file" && (
+                  <div className="p-4 rounded-xl bg-white border border-slate-200 flex items-center gap-3 shadow-xs">
+                    <FileIcon className="w-6 h-6 text-blue-600 shrink-0" />
+                    <div className="truncate">
+                      <p className="text-xs font-bold text-slate-800 truncate">{mediaFile?.name || "Attached Document"}</p>
+                      <p className="text-[10px] text-slate-500">{mediaFile?.size ? `${(mediaFile.size / (1024 * 1024)).toFixed(2)} MB` : "File attached"}</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -461,15 +515,15 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
           </div>
 
           {/* Privacy Note */}
-          <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20 text-xs text-emerald-300 flex items-start gap-2.5">
-            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-950 flex items-start gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <p>
-              <strong>Anonymous Guarantee:</strong> Content moderators will only see your Follower ID (<strong>{user?.follower_id}</strong>). Your real identity (name, WhatsApp number, state, age) is isolated on the backend and never exposed during content review.
+              <strong>Anonymous Guarantee:</strong> Content moderators will only see your Follower ID (<strong>{user?.follower_id}</strong>). Your real identity (name, WhatsApp number, state, age) is isolated on the backend and never exposed during review.
             </p>
           </div>
 
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium">
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
               {errorMessage}
             </div>
           )}
@@ -478,9 +532,14 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setStep("compose")}
+              onClick={() => {
+                setStep("compose");
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
               disabled={isSubmitting}
-              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold text-sm border border-stone-700 transition-colors"
+              className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm border border-slate-200 transition-colors"
             >
               Back to Edit
             </button>
@@ -490,7 +549,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
               id="btn-confirm-submission"
               onClick={handleFinalSubmit}
               disabled={isSubmitting}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-rose-950/50 disabled:opacity-50 transition-all cursor-pointer"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm tracking-wide shadow-md shadow-blue-600/20 disabled:opacity-50 transition-all cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -512,39 +571,39 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
       {/* STEP 1: COMPOSE SUBMISSION */}
       {/* ------------------------------------------------------------- */}
       {step === "compose" && (
-        <div className="bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+        <div className="bg-white border border-blue-100 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
           {/* Header */}
-          <div className="border-b border-stone-800 pb-4">
+          <div className="border-b border-slate-100 pb-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs uppercase tracking-wider font-bold text-rose-400">
+              <span className="text-xs uppercase tracking-wider font-bold text-blue-600">
                 Anonymous Campus Submission
               </span>
               {user ? (
-                <span className="text-xs font-mono font-bold text-stone-400">
-                  Posting as: <strong className="text-rose-400">{user.follower_id}</strong>
+                <span className="text-xs font-mono font-bold text-slate-500">
+                  Posting as: <strong className="text-blue-700">{user.follower_id}</strong>
                 </span>
               ) : (
                 <button
                   type="button"
-                  onClick={onOpenAuth}
-                  className="text-xs font-bold text-rose-400 hover:underline"
+                  onClick={() => onOpenAuth("register")}
+                  className="text-xs font-bold text-blue-600 hover:underline"
                 >
-                  Register to get ID
+                  Register to get Follower ID
                 </button>
               )}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">
+            <h2 className="text-2xl sm:text-3xl font-black text-blue-950">
               Submit to The Campus Mirror
             </h2>
-            <p className="text-xs sm:text-sm text-stone-400 mt-1">
-              Share your story, gossip, tip, confession or message with The Campus Mirror.
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Share your story, gossip, tip, voice note, or media with FUAHSE Insider.
             </p>
           </div>
 
           {/* Anonymous Safety Notice */}
-          <div className="p-3.5 rounded-2xl bg-stone-950/80 border border-stone-800 flex items-center justify-between text-xs text-stone-400">
+          <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200 flex items-center justify-between text-xs text-blue-950">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>100% Anonymous Follower Protection Active</span>
             </div>
             <WhatsAppButton variant="compact" />
@@ -554,8 +613,8 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
           <div className="space-y-5">
             {/* 1. Category Selection */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-stone-300 mb-2">
-                1. Select Category <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                1. Select Category <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {categories.map((cat) => (
@@ -565,8 +624,8 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                     onClick={() => setSelectedCategory(cat.name)}
                     className={`p-2.5 rounded-xl text-xs font-bold text-left transition-all border ${
                       selectedCategory === cat.name
-                        ? "bg-rose-600 text-white border-rose-500 shadow-md shadow-rose-950/30"
-                        : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700 hover:text-stone-200"
+                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                        : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                     }`}
                   >
                     {cat.name}
@@ -577,60 +636,73 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
 
             {/* 2. Format / Type Tabs */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-stone-300 mb-2">
-                2. Submission Format <span className="text-rose-400">*</span>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                2. Submission Format <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <button
                   type="button"
                   onClick={() => setSubmissionType("text")}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold transition-all border ${
                     submissionType === "text"
-                      ? "bg-stone-800 text-white border-stone-700 shadow-sm"
-                      : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                   }`}
                 >
-                  <FileText className="w-4 h-4 text-rose-400" />
+                  <FileText className="w-4 h-4 shrink-0" />
                   <span>Text / Story</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSubmissionType("image")}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold transition-all border ${
                     submissionType === "image"
-                      ? "bg-stone-800 text-white border-stone-700 shadow-sm"
-                      : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                   }`}
                 >
-                  <ImageIcon className="w-4 h-4 text-emerald-400" />
+                  <ImageIcon className="w-4 h-4 shrink-0" />
                   <span>Photo / Image</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSubmissionType("video")}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold transition-all border ${
                     submissionType === "video"
-                      ? "bg-stone-800 text-white border-stone-700 shadow-sm"
-                      : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                   }`}
                 >
-                  <VideoIcon className="w-4 h-4 text-amber-400" />
+                  <VideoIcon className="w-4 h-4 shrink-0" />
                   <span>Video Clip</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setSubmissionType("audio")}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-xl text-xs font-bold transition-all border ${
+                  className={`flex items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold transition-all border ${
                     submissionType === "audio"
-                      ? "bg-stone-800 text-white border-stone-700 shadow-sm"
-                      : "bg-stone-950 text-stone-400 border-stone-800 hover:border-stone-700"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
                   }`}
                 >
-                  <Mic className="w-4 h-4 text-sky-400" />
+                  <Mic className="w-4 h-4 shrink-0" />
                   <span>Voice Note / Audio</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSubmissionType("file")}
+                  className={`flex items-center justify-center gap-1.5 p-3 rounded-xl text-xs font-bold transition-all border col-span-2 sm:col-span-1 ${
+                    submissionType === "file"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-slate-50 text-slate-700 border-slate-200 hover:border-blue-300 hover:bg-blue-50/50"
+                  }`}
+                >
+                  <Paperclip className="w-4 h-4 shrink-0" />
+                  <span>File / Doc</span>
                 </button>
               </div>
             </div>
@@ -638,11 +710,11 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
             {/* 3. Text Message Area */}
             <div>
               <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-bold uppercase tracking-wider text-stone-300">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-700">
                   {submissionType === "text" ? "Gossip / Story Details" : "Caption / Description (Optional)"}
-                  {submissionType === "text" && <span className="text-rose-400"> *</span>}
+                  {submissionType === "text" && <span className="text-red-500"> *</span>}
                 </label>
-                <span className="text-[11px] font-mono text-stone-500">
+                <span className="text-[11px] font-mono text-slate-500">
                   {textContent.length} characters
                 </span>
               </div>
@@ -655,27 +727,27 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                 }
                 value={textContent}
                 onChange={(e) => setTextContent(e.target.value)}
-                className="w-full p-4 rounded-2xl bg-stone-950 border border-stone-800 text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition-colors resize-none leading-relaxed"
+                className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500 transition-colors resize-none leading-relaxed"
               />
             </div>
 
             {/* 4. Media Upload Controls */}
             {submissionType !== "text" && (
               <div className="space-y-3">
-                <label className="block text-xs font-bold uppercase tracking-wider text-stone-300">
-                  Attach {submissionType === "image" ? "Image" : submissionType === "video" ? "Video" : "Voice Note"} File
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Attach {submissionType === "image" ? "Image" : submissionType === "video" ? "Video" : submissionType === "file" ? "Document / File" : "Voice Note"} File
                 </label>
 
                 {/* AUDIO RECORDING WORKFLOW */}
                 {submissionType === "audio" && (
-                  <div className="p-5 rounded-2xl bg-stone-950 border border-stone-800 space-y-4">
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-blue-200 space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
+                      <span className="text-xs font-bold uppercase tracking-wider text-blue-900">
                         Live Voice Note Recorder (Microphone)
                       </span>
                       {recordingDuration > 0 && (
-                        <span className="text-xs font-mono font-bold text-rose-400">
-                          {formatSeconds(recordingDuration)}
+                        <span className="text-xs font-mono font-bold text-red-600 animate-pulse">
+                          ● {formatSeconds(recordingDuration)}
                         </span>
                       )}
                     </div>
@@ -687,7 +759,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                           type="button"
                           id="btn-start-mic-recording"
                           onClick={startRecording}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md shadow-rose-950/40 active:scale-95 cursor-pointer"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
                         >
                           <Mic className="w-4 h-4 animate-pulse" />
                           <span>Record Voice Note</span>
@@ -699,7 +771,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                           type="button"
                           id="btn-stop-mic-recording"
                           onClick={stopRecording}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-all animate-pulse shadow-md active:scale-95 cursor-pointer"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-all animate-pulse shadow-md active:scale-95 cursor-pointer"
                         >
                           <Square className="w-4 h-4 fill-white" />
                           <span>Stop Recording ({formatSeconds(recordingDuration)})</span>
@@ -711,15 +783,15 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                           <button
                             type="button"
                             onClick={togglePlayAudio}
-                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
                           >
                             {isPlayingAudio ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                            <span>{isPlayingAudio ? "Pause" : "Play Preview"}</span>
+                            <span>{isPlayingAudio ? "Pause" : "Play Voice Note"}</span>
                           </button>
                           <button
                             type="button"
                             onClick={resetRecording}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold"
                           >
                             <RotateCcw className="w-3.5 h-3.5" />
                             <span>Re-record</span>
@@ -733,21 +805,21 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                         </div>
                       )}
 
-                      <span className="text-xs text-stone-500">or upload audio file below</span>
+                      <span className="text-xs text-slate-500">or upload audio file below</span>
                     </div>
 
                     {micError && (
-                      <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium">
+                      <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
                         {micError}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* FILE PICKER (For images, videos, or audio file upload) */}
+                {/* FILE PICKER (For images, videos, audio, or files) */}
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-stone-800 hover:border-stone-700 rounded-2xl p-6 text-center cursor-pointer bg-stone-950/60 hover:bg-stone-950 transition-colors"
+                  className="border-2 border-dashed border-blue-200 hover:border-blue-400 rounded-2xl p-6 text-center cursor-pointer bg-slate-50 hover:bg-blue-50/50 transition-colors"
                 >
                   <input
                     ref={fileInputRef}
@@ -756,43 +828,47 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                       submissionType === "image"
                         ? "image/jpeg,image/png,image/webp,image/gif"
                         : submissionType === "video"
-                        ? "video/mp4,video/webm,video/quicktime"
-                        : "audio/mpeg,audio/mp3,audio/wav,audio/webm,audio/ogg,audio/m4a"
+                        ? "video/mp4,video/webm,video/quicktime,video/x-matroska,video/3gpp"
+                        : submissionType === "audio"
+                        ? "audio/mpeg,audio/mp3,audio/wav,audio/webm,audio/ogg,audio/m4a,audio/aac"
+                        : ".pdf,.doc,.docx,.txt,.zip"
                     }
                     onChange={handleFileChange}
                     className="hidden"
                   />
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="p-3 rounded-2xl bg-stone-900 border border-stone-800 text-stone-400">
+                    <div className="p-3 rounded-2xl bg-white border border-blue-100 text-blue-600 shadow-xs">
                       <Upload className="w-6 h-6" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-rose-400 hover:underline">
-                        Click to upload {submissionType}
+                      <span className="text-xs font-bold text-blue-600 hover:underline">
+                        Click to upload {submissionType === "file" ? "document/file" : submissionType}
                       </span>
-                      <span className="text-xs text-stone-500"> or drag and drop</span>
+                      <span className="text-xs text-slate-500"> or drag and drop</span>
                     </div>
-                    <p className="text-[11px] text-stone-500">
+                    <p className="text-[11px] text-slate-500">
                       {submissionType === "image"
                         ? "JPG, PNG, WEBP, GIF up to 10MB"
                         : submissionType === "video"
                         ? "MP4, WebM, MOV up to 50MB"
-                        : "MP3, WAV, WEBM, M4A up to 25MB"}
+                        : submissionType === "audio"
+                        ? "MP3, WAV, WEBM, M4A up to 25MB"
+                        : "PDF, DOC, DOCX, TXT, ZIP up to 20MB"}
                     </p>
                   </div>
                 </div>
 
                 {/* Selected File Badge */}
                 {mediaFile && (
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300">
-                    <span className="truncate font-medium">{mediaFile.name} ({(mediaFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-950">
+                    <span className="truncate font-semibold">{mediaFile.name} ({(mediaFile.size / (1024 * 1024)).toFixed(2)} MB)</span>
                     <button
                       type="button"
                       onClick={() => {
                         setMediaFile(null);
                         setMediaDataUrl(null);
                       }}
-                      className="text-rose-400 hover:text-rose-300 font-bold ml-2 shrink-0"
+                      className="text-red-600 hover:text-red-700 font-bold ml-2 shrink-0"
                     >
                       Remove
                     </button>
@@ -802,7 +878,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
             )}
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
@@ -814,9 +890,9 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                 type="button"
                 id="btn-proceed-preview"
                 onClick={handleProceedToPreview}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-extrabold text-sm tracking-wide shadow-lg shadow-rose-950/50 transition-all active:scale-98 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm tracking-wide shadow-md shadow-blue-600/20 transition-all active:scale-98 cursor-pointer"
               >
-                <span>Preview Submission</span>
+                <span>Fast Preview & Submit</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
