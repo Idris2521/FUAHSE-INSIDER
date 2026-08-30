@@ -18,7 +18,7 @@ import {
 
 dotenv.config();
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // Internal cryptographic token signing key (managed automatically)
 const AUTH_SECRET = "fuahse-insider-campus-mirror-secret-key-2026";
 
