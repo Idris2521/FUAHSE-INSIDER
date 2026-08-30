@@ -1,0 +1,6 @@
+{
+  "name": "FUAHSE_🅸🅽🆂🅸🅳🅴🆁",
+  "description": "The Campus Mirror - An anonymous campus content-submission platform connected to WhatsApp Channel with multi-tier role management.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
