@@ -153,6 +153,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     if (!admin) return;
     setIsRefreshing(true);
     try {
+      await api.syncSupabase().catch(() => {});
       if (activeTab === "dashboard") {
         await Promise.all([fetchStats(), fetchCategories(), fetchAdminSubmissions()]);
       } else if (activeTab === "submissions") {
@@ -169,7 +170,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
         await fetchSettings();
       }
       if (showBanner) {
-        showFeedback("success", "Database records refreshed successfully");
+        showFeedback("success", "Database records and user counts refreshed successfully");
       }
     } catch (err) {
       console.error("Auto refresh error:", err);

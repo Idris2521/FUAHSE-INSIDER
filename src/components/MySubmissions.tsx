@@ -432,6 +432,29 @@ export const MySubmissions: React.FC<MySubmissionsProps> = ({
                     {m.file_type === "audio" && (
                       <audio src={m.file_url} controls className="w-full" />
                     )}
+                    {m.file_type === "file" && (
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-stone-900 border border-stone-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+                            <FileText className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-stone-200 truncate max-w-xs">{m.file_name || "Document Attachment"}</p>
+                            <p className="text-[10px] text-stone-400 font-mono">{m.mime_type || "Document File"}</p>
+                          </div>
+                        </div>
+                        <a
+                          href={m.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          download={m.file_name || "document"}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-sm"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Open File</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

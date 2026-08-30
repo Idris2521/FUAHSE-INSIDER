@@ -286,6 +286,15 @@ export const api = {
 
   // Stats & Audit
   getDashboardStats: () => request<{ stats: DashboardStats }>("/api/admin/stats", {}, "admin"),
+  syncSupabase: () =>
+    request<{
+      success: boolean;
+      isSupabaseConnected: boolean;
+      totalUsers: number;
+      totalSubmissions: number;
+      adminCount: number;
+      categoriesCount: number;
+    }>("/api/admin/sync-supabase", { method: "POST" }, "admin"),
   getAuditLogs: (params: { search?: string; action?: string; page?: number; limit?: number }) => {
     const query = new URLSearchParams();
     if (params.search) query.set("search", params.search);

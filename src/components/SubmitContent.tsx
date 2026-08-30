@@ -276,6 +276,7 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
 
         uploadedMediaItems.push({
           file_url: resMedia.file_url,
+          file_name: resMedia.file_name || mediaFile?.name || defaultName,
           storage_path: resMedia.storage_path,
           file_type: resMedia.file_type,
           mime_type: resMedia.mime_type,
