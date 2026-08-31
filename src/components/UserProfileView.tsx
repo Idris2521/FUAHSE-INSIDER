@@ -16,6 +16,7 @@ import {
 import { NIGERIAN_STATES, UserProfile } from "../types";
 import { api, setUserToken } from "../lib/api";
 import { WhatsAppButton } from "./WhatsAppButton";
+import { FuahseTvCard } from "./FuahseTvCard";
 
 interface UserProfileViewProps {
   user: UserProfile;
@@ -245,6 +246,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </div>
         </form>
       </div>
+
+      {/* FUAHSE TV 📺 WhatsApp Card */}
+      <FuahseTvCard user={user} />
 
       {/* WhatsApp Community Box */}
       <div className="bg-stone-950/70 border border-emerald-500/20 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -26,6 +26,7 @@ import { Category, SubmissionType, UserProfile } from "../types";
 import { api } from "../lib/api";
 import { WhatsAppButton } from "./WhatsAppButton";
 import { FuahseLogo } from "./FuahseLogo";
+import { FuahseTvCard } from "./FuahseTvCard";
 
 interface SubmitContentProps {
   user: UserProfile | null;
@@ -376,6 +377,10 @@ export const SubmitContent: React.FC<SubmitContentProps> = ({
                 Pending Admin Review
               </span>
             </div>
+          </div>
+
+          <div className="text-left">
+            <FuahseTvCard user={user} onOpenAuth={onOpenAuth} />
           </div>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">

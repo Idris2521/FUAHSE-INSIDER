@@ -20,6 +20,7 @@ import {
 import { Category, Submission, UserProfile, WHATSAPP_CHANNEL_URL } from "../types";
 import { WhatsAppButton } from "./WhatsAppButton";
 import { FuahseLogo } from "./FuahseLogo";
+import { FuahseTvCard } from "./FuahseTvCard";
 import { api } from "../lib/api";
 
 interface UserHomeProps {
@@ -150,6 +151,11 @@ export const UserHome: React.FC<UserHomeProps> = ({
           </button>
         </div>
       </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* FUAHSE TV 📺 OFFICIAL WHATSAPP CARD */}
+      {/* ------------------------------------------------------------- */}
+      <FuahseTvCard user={user} onOpenAuth={onOpenAuth} />
 
       {/* ------------------------------------------------------------- */}
       {/* QUICK STATUS TRACKER (IF LOGGED IN) */}
