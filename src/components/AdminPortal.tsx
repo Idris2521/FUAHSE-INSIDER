@@ -181,27 +181,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     }
   };
 
-  // Periodic Auto-Polling (Every 10 seconds) to ensure real-time single source of truth
-  useEffect(() => {
-    if (!admin) return;
-    const interval = setInterval(() => {
-      refreshCurrentView(false);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [
-    admin,
-    activeTab,
-    subPage,
-    subCategoryFilter,
-    subTypeFilter,
-    subStatusFilter,
-    subSearch,
-    userPage,
-    userSearch,
-    userStateFilter,
-    userStatusFilter,
-  ]);
-
   const checkConfigAndSession = async () => {
     setLoadingAuth(true);
     try {
@@ -226,7 +205,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     }
   };
 
-  // Fetch data when activeTab changes or admin logs in
+  // Fetch data when activeTab or filter parameters change (No disruptive periodic timer)
   useEffect(() => {
     if (!admin) return;
 
@@ -248,21 +227,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     } else if (activeTab === "settings" && admin.role === "SUPER_ADMIN") {
       fetchSettings();
     }
-
-    // Auto-polling interval: live sync database state across devices every 6 seconds as fallback
-    const interval = setInterval(() => {
-      if (activeTab === "dashboard") {
-        fetchStats();
-        fetchAdminSubmissions();
-        fetchAdminUsers();
-      } else if (activeTab === "submissions") {
-        fetchAdminSubmissions();
-      } else if (activeTab === "users") {
-        fetchAdminUsers();
-      }
-    }, 6000);
-
-    return () => clearInterval(interval);
   }, [
     admin,
     activeTab,
@@ -277,59 +241,75 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     userStatusFilter,
   ]);
 
-  // Realtime Server-Sent Events (SSE) listener for instant live updates
+  // Realtime Server-Sent Events (SSE) listener for instant, non-disruptive live updates
   useEffect(() => {
     if (!admin) return;
     const token = getAdminToken();
     if (!token) return;
 
     let eventSource: EventSource | null = null;
-    try {
-      eventSource = new EventSource(`/api/admin/realtime?token=${encodeURIComponent(token)}`);
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isSubscribed = true;
 
-      eventSource.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload.type === "NEW_SUBMISSION" && payload.data) {
-            setSubmissions((prev) => [payload.data, ...prev.filter((s) => s.id !== payload.data.id)]);
-            setSubTotal((prev) => prev + 1);
-            fetchStats();
-          } else if (payload.type === "SUBMISSION_UPDATED" && payload.data) {
-            setSubmissions((prev) =>
-              prev.map((s) => (s.id === payload.data.id ? { ...s, ...payload.data } : s))
-            );
-            if (selectedSub?.id === payload.data.id) {
-              setSelectedSub((prev) => (prev ? { ...prev, ...payload.data } : null));
+    const connectSSE = () => {
+      if (!isSubscribed) return;
+      try {
+        eventSource = new EventSource(`/api/admin/realtime?token=${encodeURIComponent(token)}`);
+
+        eventSource.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === "NEW_SUBMISSION" && payload.data) {
+              setSubmissions((prev) => [payload.data, ...prev.filter((s) => s.id !== payload.data.id)]);
+              setSubTotal((prev) => prev + 1);
+              fetchStats();
+            } else if (payload.type === "SUBMISSION_UPDATED" && payload.data) {
+              setSubmissions((prev) =>
+                prev.map((s) => (s.id === payload.data.id ? { ...s, ...payload.data } : s))
+              );
+              if (selectedSub?.id === payload.data.id) {
+                setSelectedSub((prev) => (prev ? { ...prev, ...payload.data } : null));
+              }
+              fetchStats();
+            } else if (payload.type === "SUBMISSION_DELETED" && payload.data) {
+              setSubmissions((prev) => prev.filter((s) => s.id !== payload.data.id));
+              setSubTotal((prev) => Math.max(0, prev - 1));
+              fetchStats();
+            } else if (payload.type === "NEW_USER" && payload.data) {
+              setUsers((prev) => [payload.data, ...prev.filter((u) => u.id !== payload.data.id)]);
+              setUserTotal((prev) => prev + 1);
+              fetchStats();
+            } else if (payload.type === "USER_UPDATED" && payload.data) {
+              setUsers((prev) =>
+                prev.map((u) => (u.id === payload.data.id ? { ...u, ...payload.data } : u))
+              );
+            } else if (payload.type === "STATS_UPDATED") {
+              fetchStats();
             }
-            fetchStats();
-          } else if (payload.type === "SUBMISSION_DELETED" && payload.data) {
-            setSubmissions((prev) => prev.filter((s) => s.id !== payload.data.id));
-            setSubTotal((prev) => Math.max(0, prev - 1));
-            fetchStats();
-          } else if (payload.type === "NEW_USER" && payload.data) {
-            setUsers((prev) => [payload.data, ...prev.filter((u) => u.id !== payload.data.id)]);
-            setUserTotal((prev) => prev + 1);
-            fetchStats();
-          } else if (payload.type === "USER_UPDATED" && payload.data) {
-            setUsers((prev) =>
-              prev.map((u) => (u.id === payload.data.id ? { ...u, ...payload.data } : u))
-            );
-          } else if (payload.type === "STATS_UPDATED") {
-            fetchStats();
+          } catch (err) {
+            console.error("Error processing SSE message:", err);
           }
-        } catch (err) {
-          console.error("Error processing SSE message:", err);
-        }
-      };
+        };
 
-      eventSource.onerror = () => {
-        eventSource?.close();
-      };
-    } catch (err) {
-      console.warn("SSE connection error:", err);
-    }
+        eventSource.onerror = () => {
+          eventSource?.close();
+          if (isSubscribed) {
+            reconnectTimeout = setTimeout(connectSSE, 5000);
+          }
+        };
+      } catch (err) {
+        console.warn("SSE connection error:", err);
+        if (isSubscribed) {
+          reconnectTimeout = setTimeout(connectSSE, 5000);
+        }
+      }
+    };
+
+    connectSSE();
 
     return () => {
+      isSubscribed = false;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
       if (eventSource) {
         eventSource.close();
       }

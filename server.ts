@@ -425,7 +425,11 @@ function saveDatabaseToFile(): void {
     fs.writeFileSync(tempPath, data, "utf-8");
     fs.renameSync(tempPath, DB_FILE_PATH);
   } catch (err) {
-    console.error("[Unified Database] Error writing to database file:", err);
+    try {
+      fs.writeFileSync(DB_FILE_PATH, JSON.stringify(memoryStore, null, 2), "utf-8");
+    } catch (fallbackErr) {
+      console.error("[Unified Database] Error writing to database file:", fallbackErr);
+    }
   }
 }
 
@@ -435,24 +439,48 @@ function syncDatabaseState(): void {
       const raw = fs.readFileSync(DB_FILE_PATH, "utf-8");
       const parsed = JSON.parse(raw);
       if (parsed) {
-        if (Array.isArray(parsed.profiles)) memoryStore.profiles = parsed.profiles;
-        if (Array.isArray(parsed.submissions)) memoryStore.submissions = parsed.submissions;
+        if (Array.isArray(parsed.profiles)) {
+          // Merge profiles preserving any in-memory additions
+          const profileMap = new Map<string, UserProfile & { password_hash?: string }>();
+          for (const p of parsed.profiles) profileMap.set(p.id, p);
+          for (const p of memoryStore.profiles) profileMap.set(p.id, p);
+          memoryStore.profiles = Array.from(profileMap.values());
+        }
+        if (Array.isArray(parsed.submissions)) {
+          const subMap = new Map<string, Submission>();
+          for (const s of parsed.submissions) subMap.set(s.id, s);
+          for (const s of memoryStore.submissions) subMap.set(s.id, s);
+          memoryStore.submissions = Array.from(subMap.values());
+        }
         if (Array.isArray(parsed.categories)) memoryStore.categories = parsed.categories;
         if (Array.isArray(parsed.adminAccounts)) memoryStore.adminAccounts = parsed.adminAccounts;
         if (Array.isArray(parsed.auditLogs)) memoryStore.auditLogs = parsed.auditLogs;
         if (parsed.settings) memoryStore.settings = { ...memoryStore.settings, ...parsed.settings };
-        if (typeof parsed.followerCounter === "number") memoryStore.followerCounter = parsed.followerCounter;
+        if (typeof parsed.followerCounter === "number") {
+          memoryStore.followerCounter = Math.max(parsed.followerCounter, memoryStore.followerCounter || 1);
+        }
       }
     }
-  } catch {}
+  } catch (err) {
+    console.error("[Unified Database Sync Error]", err);
+  }
 }
 
 function generateUniqueFollowerId(): string {
   syncDatabaseState();
-  const current = memoryStore.followerCounter;
-  memoryStore.followerCounter += 1;
+  let maxNumber = memoryStore.followerCounter || 1;
+  for (const p of memoryStore.profiles) {
+    const match = p.follower_id ? p.follower_id.match(/FOLLOWER-(\d+)/i) : null;
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (!isNaN(num) && num >= maxNumber) {
+        maxNumber = num + 1;
+      }
+    }
+  }
+  memoryStore.followerCounter = maxNumber + 1;
   saveDatabaseToFile();
-  const numStr = String(current).padStart(3, "0");
+  const numStr = String(maxNumber).padStart(3, "0");
   return `FOLLOWER-${numStr}`;
 }
 
@@ -859,21 +887,8 @@ async function startServer() {
       return;
     }
 
-    // Generate follower ID
-    let followerId = "";
-    if (supabaseClient) {
-      try {
-        const { data: seqData, error: seqErr } = await supabaseClient.rpc("generate_follower_id");
-        if (!seqErr && seqData) {
-          followerId = seqData;
-        }
-      } catch (err) {
-        console.warn("[Follower ID RPC Failed, fallback to server generator]", err);
-      }
-    }
-    if (!followerId) {
-      followerId = generateUniqueFollowerId();
-    }
+    // Generate follower ID instantly & reliably from persistent sequence generator
+    const followerId = generateUniqueFollowerId();
 
     const userId = crypto.randomUUID();
     const password_hash = hashPassword(password);
@@ -892,26 +907,29 @@ async function startServer() {
       submission_count: 0,
     };
 
-    memoryStore.profiles.push({ ...profile, password_hash });
+    memoryStore.profiles.unshift({ ...profile, password_hash });
     saveDatabaseToFile();
 
+    // Asynchronous non-blocking Supabase sync if connected
     if (supabaseClient) {
-      try {
-        await supabaseClient.from("profiles").insert({
-          id: userId,
-          follower_id: followerId,
-          name: profile.name,
-          age: profile.age,
-          state: profile.state,
-          whatsapp_number: profile.whatsapp_number,
-          password_hash,
-          account_status: "active",
-          created_at: now,
-          updated_at: now,
-        });
-      } catch (err) {
-        console.error("[Supabase Insert Profile Error]", err);
-      }
+      void (async () => {
+        try {
+          await supabaseClient.from("profiles").insert({
+            id: userId,
+            follower_id: followerId,
+            name: profile.name,
+            age: profile.age,
+            state: profile.state,
+            whatsapp_number: profile.whatsapp_number,
+            password_hash,
+            account_status: "active",
+            created_at: now,
+            updated_at: now,
+          });
+        } catch (err) {
+          console.error("[Supabase Insert Profile Background Error]", err);
+        }
+      })();
     }
 
     // Issue Auth Token
@@ -921,6 +939,7 @@ async function startServer() {
       type: "user",
     }, 30 * 24 * 3600);
 
+    // Broadcast instant real-time event to all connected admin dashboards & clients
     broadcastRealtimeEvent({ type: "NEW_USER", data: profile });
     broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
@@ -2034,13 +2053,6 @@ async function startServer() {
   // ---------------------------------------------------------------------------
   app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     syncDatabaseState();
-    if (supabaseClient) {
-      try {
-        await syncFromSupabase();
-      } catch (err) {
-        console.error("[Users Supabase Sync Error]", err);
-      }
-    }
     const admin = (req as any).admin;
     const { search, state, status, page = "1", limit = "20" } = req.query;
 
@@ -2507,13 +2519,6 @@ async function startServer() {
   // ---------------------------------------------------------------------------
   app.get("/api/admin/stats", authenticateAdmin, async (req, res) => {
     syncDatabaseState();
-    if (supabaseClient) {
-      try {
-        await syncFromSupabase();
-      } catch (err) {
-        console.error("[Stats Supabase Sync Error]", err);
-      }
-    }
     const now = new Date();
     const todayStr = now.toISOString().slice(0, 10);
 

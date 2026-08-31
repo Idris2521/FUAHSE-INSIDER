@@ -1,6 +1,19 @@
 {
-  "followerCounter": 2,
+  "followerCounter": 4,
   "profiles": [
+    {
+      "id": "a8ca268b-8042-43cf-877b-071aab041ae9",
+      "follower_id": "FOLLOWER-003",
+      "name": "Amina Bello",
+      "age": 22,
+      "state": "Kano",
+      "whatsapp_number": "08123456789",
+      "account_status": "active",
+      "created_at": "2026-08-31T16:51:12.011Z",
+      "updated_at": "2026-08-31T16:51:12.011Z",
+      "submission_count": 0,
+      "password_hash": "2b6f7df76a829074930197195fbe96954b73294158566301cbe67d771fc146d5"
+    },
     {
       "id": "c2eaaac6-5eb6-4afd-8ab4-d01e20418c2d",
       "follower_id": "FOLLOWER-001",
@@ -13,6 +26,19 @@
       "updated_at": "2026-08-31T16:32:23.437Z",
       "submission_count": 0,
       "password_hash": "2b6f7df76a829074930197195fbe96954b73294158566301cbe67d771fc146d5"
+    },
+    {
+      "id": "b1475807-0886-4d95-aee7-d7c01a23497f",
+      "follower_id": "FOLLOWER-002",
+      "name": "Yut",
+      "age": 23,
+      "state": "Osun",
+      "whatsapp_number": "080765346166",
+      "account_status": "active",
+      "created_at": "2026-08-31T16:35:54.528Z",
+      "updated_at": "2026-08-31T16:35:54.528Z",
+      "submission_count": 0,
+      "password_hash": "8e373136c44b654cd84c00a1f31cf7833f4c68eb334ec6b52c4a65ec600be178"
     }
   ],
   "adminAccounts": [
@@ -87,6 +113,1759 @@
   ],
   "submissions": [],
   "auditLogs": [
+    {
+      "id": "95771e72-9b45-40bf-a59a-738790909ff6",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:51:09.176Z"
+    },
+    {
+      "id": "44432a53-515e-43fe-a187-9457a4cad0b8",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:51:08.658Z"
+    },
+    {
+      "id": "64cfcf1a-0a6e-491e-9d3b-30e476ba5412",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:51:02.947Z"
+    },
+    {
+      "id": "66ec35c8-30f7-448f-9ee9-d9f90670c9fe",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:59.334Z"
+    },
+    {
+      "id": "58b22640-17a5-4a93-bf17-b90f81925d9b",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:56.935Z"
+    },
+    {
+      "id": "2df17e55-d81a-4199-a299-25ad30a58cc7",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:50.996Z"
+    },
+    {
+      "id": "b606af86-4008-4b91-998e-008f459722a5",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:49.534Z"
+    },
+    {
+      "id": "4014257e-46b9-4328-b7f9-e8b66e4e01fb",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:44.968Z"
+    },
+    {
+      "id": "330ff476-569b-490b-b647-9b151cb0edac",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:38.953Z"
+    },
+    {
+      "id": "f2761661-0b7b-4773-8f27-6a440138e862",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:38.494Z"
+    },
+    {
+      "id": "d0c2b6e5-0d41-48a3-b3ac-396b734f83a7",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:35.795Z"
+    },
+    {
+      "id": "77fb94d0-89a2-4984-aeed-41b3769d3789",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:35.302Z"
+    },
+    {
+      "id": "679e424d-8518-4283-83a7-00c0544ecca2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:35.000Z"
+    },
+    {
+      "id": "f2f78655-18cb-4a1d-99f2-b537a6ea12c2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:34.721Z"
+    },
+    {
+      "id": "fb65ca00-3659-45f3-9d7b-be168df736ef",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:50:03.019Z"
+    },
+    {
+      "id": "158b6e7d-948b-4493-8fe7-2e13ee3ca738",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:58.985Z"
+    },
+    {
+      "id": "5dd5c6ea-a8e2-4599-a896-44f0feac89ca",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:56.434Z"
+    },
+    {
+      "id": "05b68bba-c02e-444d-a1c9-ce996f3c3a18",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:50.495Z"
+    },
+    {
+      "id": "ba549018-c532-423d-8d2a-13e33d8dc8dd",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:49.116Z"
+    },
+    {
+      "id": "98490833-39ff-485a-a33c-c8b25ec9a21a",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:44.578Z"
+    },
+    {
+      "id": "7452b010-4177-43ca-b881-d351a01e0859",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:49:38.430Z"
+    },
+    {
+      "id": "3f9677e9-c91f-4018-87b2-8b079b7786cb",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "ADMIN_LOGIN",
+      "target_type": "SESSION",
+      "target_id": "admin-master-001",
+      "details": {},
+      "created_at": "2026-08-31T16:49:37.682Z"
+    },
+    {
+      "id": "34ccd24e-ff29-4b45-9fbb-edcb9d5c3cdb",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:41:14.572Z"
+    },
+    {
+      "id": "d30d42d2-9b64-4372-ae68-013022c55bc2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:41:13.125Z"
+    },
+    {
+      "id": "853e7e92-d2b9-448e-972c-2f7732525064",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:41:08.621Z"
+    },
+    {
+      "id": "5781e026-bf22-4a73-87ad-fef2696d2919",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:41:02.999Z"
+    },
+    {
+      "id": "46619cc0-995e-492d-9f8f-f2d595f5468e",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:41:02.570Z"
+    },
+    {
+      "id": "e4a664db-6c6b-482e-ab6d-f54ae47505e9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:59.907Z"
+    },
+    {
+      "id": "d6fc2bad-0516-49a8-a13f-fba919692d60",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:54.892Z"
+    },
+    {
+      "id": "7f12744e-e72b-45b0-a909-cd6c097639c5",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:51.832Z"
+    },
+    {
+      "id": "9bf0194d-3ccb-4aaf-97f5-ec205fe7d23a",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:47.831Z"
+    },
+    {
+      "id": "d8ac151b-0559-4914-abfc-c664b6269b99",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:43.466Z"
+    },
+    {
+      "id": "250194e3-502b-4d62-8531-b28cd14abd3c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:38.808Z"
+    },
+    {
+      "id": "9d7e9bc3-0f8a-4214-8f65-fd8c1a180792",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:33.142Z"
+    },
+    {
+      "id": "ffdaf9f6-d1dc-473e-8af8-3ace1c114f63",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:32.596Z"
+    },
+    {
+      "id": "cc9fa237-d833-416f-a37c-4c5977c9918a",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:26.585Z"
+    },
+    {
+      "id": "8676c955-adf2-4baa-abf6-231db3c21c62",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:23.006Z"
+    },
+    {
+      "id": "5940c64a-b8e9-45ac-8b0c-f572e4a8c8ff",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:20.699Z"
+    },
+    {
+      "id": "9e8c8e31-d905-43c4-9026-0c8395343c76",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:14.818Z"
+    },
+    {
+      "id": "99ad35e8-31f9-4c26-bf44-13561f1dd2fd",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:13.227Z"
+    },
+    {
+      "id": "09218b89-ab21-4f87-a620-03251f43b6a6",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:08.720Z"
+    },
+    {
+      "id": "c2f2f1cb-6846-4226-8539-e26f05adfb46",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:03.450Z"
+    },
+    {
+      "id": "3948a754-9c4d-45f7-b3b2-b10c560f08e2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:40:02.943Z"
+    },
+    {
+      "id": "fda4dcdd-1afc-45ba-8d1e-83dd0990da4c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:56.608Z"
+    },
+    {
+      "id": "a7d7d168-c369-4b7d-9c51-6f500c7206bf",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:53.000Z"
+    },
+    {
+      "id": "806fce1b-9447-43d0-b19d-0ad405276a95",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:50.701Z"
+    },
+    {
+      "id": "2ac36d2d-d4c4-45ae-a527-f210567ec4e0",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:44.707Z"
+    },
+    {
+      "id": "48664300-fe85-4935-aad8-ccde8aee9aa0",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:43.190Z"
+    },
+    {
+      "id": "8967977f-2948-4212-b847-4e1ac9ad16e9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:38.669Z"
+    },
+    {
+      "id": "37785101-1ca7-4b6e-a57d-c1924f515da9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:33.569Z"
+    },
+    {
+      "id": "7055ab48-5a2d-4a46-acd0-b323bf0749b1",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:32.702Z"
+    },
+    {
+      "id": "2d2e1fa1-5846-4e50-b85f-35fddd9f6a38",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:26.590Z"
+    },
+    {
+      "id": "bbc36ccb-3d85-49ff-bfa2-93c989e6118f",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:23.070Z"
+    },
+    {
+      "id": "dd6d6b73-ef04-40c1-98d7-4bcbac4ccf91",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:20.659Z"
+    },
+    {
+      "id": "2d44ab71-0634-4cf5-9ea8-64de2ae19582",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:14.703Z"
+    },
+    {
+      "id": "0f872066-8b47-47a5-9aa3-39136121b185",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:13.138Z"
+    },
+    {
+      "id": "6e803ca6-2926-41c0-b9a1-ae439c0ba556",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:08.999Z"
+    },
+    {
+      "id": "0be7fca2-249d-40aa-b0dd-181a360791e0",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:04.260Z"
+    },
+    {
+      "id": "00b3d8ef-0052-4ebd-b82f-49caaabe70b6",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:39:03.541Z"
+    },
+    {
+      "id": "3dda0f8b-4b52-4f9a-8e4f-3a471a60ab93",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:55.659Z"
+    },
+    {
+      "id": "165a51f2-6454-4ce9-a466-2b353c2f3afb",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:52.103Z"
+    },
+    {
+      "id": "1d347d88-f8d9-44fe-9793-b719e2348be5",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:49.806Z"
+    },
+    {
+      "id": "bbf9801a-1904-4f3c-aeef-1fd14bd23a74",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:43.762Z"
+    },
+    {
+      "id": "e7b5d768-da4d-42c4-a32c-3800642a3223",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:42.658Z"
+    },
+    {
+      "id": "b9e9a258-b326-4c5e-8eec-6aa5c3b1b56c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:38.794Z"
+    },
+    {
+      "id": "c6c26992-02cc-4789-8425-cdc76c1ecbfb",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:33.174Z"
+    },
+    {
+      "id": "26918c5e-5a40-4e21-a7c2-d37b5ec460e4",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:32.623Z"
+    },
+    {
+      "id": "d145f139-06d2-4795-8138-68833304868c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:26.541Z"
+    },
+    {
+      "id": "9ef31c9d-7fb0-4cfe-8f5a-fcc3d49553ab",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:23.058Z"
+    },
+    {
+      "id": "32cc1ce2-24ab-4889-bff2-72becefab151",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:20.741Z"
+    },
+    {
+      "id": "0ba24323-03ae-4b90-b144-a30a9a3fb2f9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:14.941Z"
+    },
+    {
+      "id": "1bd409f9-3608-4d6a-8374-dd230fd6d192",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:13.298Z"
+    },
+    {
+      "id": "1061239c-cc38-4f50-945b-f0c145e0e9b8",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:08.603Z"
+    },
+    {
+      "id": "e62ed082-055e-42b8-a225-aed4cf021f40",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:03.394Z"
+    },
+    {
+      "id": "ed608bc3-821e-4c27-a95f-ea566d092c5f",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:38:02.894Z"
+    },
+    {
+      "id": "49b4dc8d-2a36-4a56-89de-5fc8d565fc21",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:56.697Z"
+    },
+    {
+      "id": "b59ea7a0-30b7-4c8e-9021-0a65b45e4979",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:53.143Z"
+    },
+    {
+      "id": "ab3a860c-23c9-4a18-a9a0-c9e6b9202ab2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:50.829Z"
+    },
+    {
+      "id": "663e3b42-a8f9-4e7e-82f9-4501a9bed211",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:45.677Z"
+    },
+    {
+      "id": "6ccfc572-e672-48b2-a1b2-6a9b2b74a7d5",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:44.577Z"
+    },
+    {
+      "id": "8e682db3-4bb9-4ac5-9cf6-e34822f7d96c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:38.640Z"
+    },
+    {
+      "id": "40017ad4-73f7-4791-8173-a5d323703635",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:33.320Z"
+    },
+    {
+      "id": "15229547-375a-495a-acb3-d27cb0b597cf",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:32.617Z"
+    },
+    {
+      "id": "f1a6eca0-9fe5-4388-99d5-d6bd38276d12",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:26.616Z"
+    },
+    {
+      "id": "95db2fda-d5b8-4ea2-99c5-5a6840d029d2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:23.089Z"
+    },
+    {
+      "id": "bf9be042-f5db-43a1-9e7d-98c4178f73b3",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:20.636Z"
+    },
+    {
+      "id": "f576f978-8f8e-44e2-82a9-bf8923da69a9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:14.756Z"
+    },
+    {
+      "id": "3ec74bd5-537b-4c4b-8bd2-493ac0457bb3",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:13.110Z"
+    },
+    {
+      "id": "f9a1d9fe-749e-4fc3-ba8e-4e1fccfdaf97",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:08.751Z"
+    },
+    {
+      "id": "b6916254-5af4-4ffc-895c-742c74c8a3ca",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:03.464Z"
+    },
+    {
+      "id": "8490a5f5-24e5-42e2-b392-08a30d168614",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:37:02.729Z"
+    },
+    {
+      "id": "d13c775e-fcfd-486e-a49a-3adc8972bd88",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:56.559Z"
+    },
+    {
+      "id": "48bd56f5-03cd-49e4-afde-99507c577c7b",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:53.742Z"
+    },
+    {
+      "id": "d4b121be-913a-47e8-b3ee-0c2357893714",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:50.620Z"
+    },
+    {
+      "id": "e69f5a9c-c983-4a54-a9f7-7961c879e044",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:44.568Z"
+    },
+    {
+      "id": "b20e59c3-2ad8-4e4d-978e-df1cbf1f24a8",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:43.107Z"
+    },
+    {
+      "id": "07725bf4-62e8-42f9-a633-54fd8c1cd9be",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:37.756Z"
+    },
+    {
+      "id": "53df270e-fa1f-4f97-ab81-c4bb24608873",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:31.666Z"
+    },
+    {
+      "id": "feeb258c-cb6a-482e-ba77-f3e84240bc32",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:29.978Z"
+    },
+    {
+      "id": "76e998a6-81d4-4759-ad80-87c8ce907b88",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:26.564Z"
+    },
+    {
+      "id": "da2b4770-8e9f-46c7-99ef-7623b9d67ef7",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:24.054Z"
+    },
+    {
+      "id": "4dfbc794-bba8-4b8c-9cd5-b02b802510b2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:17.992Z"
+    },
+    {
+      "id": "cb0f6f0e-92c6-4aef-9cdc-e770a1b02cb1",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:16.501Z"
+    },
+    {
+      "id": "0196b0a0-b551-4873-b88c-21a20c916702",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:12.077Z"
+    },
+    {
+      "id": "097313ec-fe7d-41bc-b1ea-bfdcdf9cade4",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:06.543Z"
+    },
+    {
+      "id": "859f86ba-2e68-4f10-96e7-e29a804b668e",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 2,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:36:05.837Z"
+    },
+    {
+      "id": "cc367764-200f-4c50-8d71-12ff09a8458d",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:34:07.288Z"
+    },
+    {
+      "id": "1beea070-2810-4e01-b2a4-86388bab523d",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:34:06.200Z"
+    },
+    {
+      "id": "0522d099-2f57-452a-8f95-e06b8f90c0b4",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:34:01.534Z"
+    },
+    {
+      "id": "5f9150ec-4b0e-4c24-bc4c-51f1f08027b1",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:56.019Z"
+    },
+    {
+      "id": "08bde055-4878-4368-a771-597a272ccdac",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:55.545Z"
+    },
+    {
+      "id": "63ccfb9d-0d4f-4860-9ae4-f73bad16ceac",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:49.545Z"
+    },
+    {
+      "id": "8b3b0e3b-40d0-4d35-81fa-40f64ec2540a",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:45.831Z"
+    },
+    {
+      "id": "5c77e181-7797-463d-85a9-96f83f8e9840",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:43.527Z"
+    },
+    {
+      "id": "16101c18-1b83-436a-a5e6-42022b448a7e",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:37.523Z"
+    },
+    {
+      "id": "4f939cb5-908b-49f0-8ddd-deaefda3f6c9",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:35.977Z"
+    },
+    {
+      "id": "586a082a-e395-48ad-b13c-c8256575f784",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:31.628Z"
+    },
+    {
+      "id": "156b28fb-25fa-4e19-b133-ec98a6b88014",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:26.122Z"
+    },
+    {
+      "id": "2c6fa71f-099f-40f4-9ee5-0dd414de761f",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:25.591Z"
+    },
+    {
+      "id": "d5520cd3-6b8e-4a55-9838-de609d4012dd",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:19.525Z"
+    },
+    {
+      "id": "8774a9a8-cb8b-42e6-98c3-37ebac360f85",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:15.898Z"
+    },
+    {
+      "id": "dc69feae-3328-42ee-91e1-51fac2874737",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:13.512Z"
+    },
+    {
+      "id": "670229f9-681b-49ab-99db-61cca5df9d29",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:12.936Z"
+    },
+    {
+      "id": "46089d86-f027-4ebf-b5f7-dffca0d9db25",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:12.501Z"
+    },
+    {
+      "id": "3a9c3378-bc0f-4a55-850d-e769a945eb13",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:33:12.024Z"
+    },
+    {
+      "id": "9445ef60-035e-42a6-bf73-4f4d75047179",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:56.017Z"
+    },
+    {
+      "id": "16bbd65c-2948-421f-84e8-f92af62b758c",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:55.628Z"
+    },
+    {
+      "id": "0b92f78a-5a82-4860-99cc-5e7c5526aede",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:49.550Z"
+    },
+    {
+      "id": "3d0e00e6-3d65-49ae-bf65-a70d4b7b6202",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:45.960Z"
+    },
+    {
+      "id": "b3e8afbe-5cb6-442a-9476-20fbdd14f78f",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:43.510Z"
+    },
+    {
+      "id": "715c69dc-aed2-4004-907f-8e6e01714cf2",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:39.423Z"
+    },
+    {
+      "id": "246d5667-883e-4875-ba08-83d9f8aa68bd",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:39.016Z"
+    },
+    {
+      "id": "b31ad0e1-d3ee-4712-a70d-55b0e4b11e67",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:38.486Z"
+    },
+    {
+      "id": "701366d5-4c22-4e58-b19c-821f45d9e4f6",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:26.091Z"
+    },
+    {
+      "id": "fab886b1-defa-4f19-9580-c16f1776dce3",
+      "actor_id": "admin-master-001",
+      "actor_email": "menmex@gmail.com",
+      "actor_role": "SUPER_ADMIN",
+      "action": "VIEW_USERS_LIST",
+      "target_type": "USER_LIST",
+      "details": {
+        "count": 1,
+        "page": 1
+      },
+      "created_at": "2026-08-31T16:32:25.560Z"
+    },
     {
       "id": "822d6552-4a96-4406-accd-31e53fd8b5ce",
       "actor_id": "admin-master-001",
