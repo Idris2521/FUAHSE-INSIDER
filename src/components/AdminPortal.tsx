@@ -41,6 +41,8 @@ import {
   Image as ImageIcon,
   ArrowRight,
   Sparkles,
+  MessageCircle,
+  PhoneCall,
 } from "lucide-react";
 import {
   AdminAccount,
@@ -155,10 +157,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     try {
       await api.syncSupabase().catch(() => {});
       if (activeTab === "dashboard") {
-        await Promise.all([fetchStats(), fetchCategories(), fetchAdminSubmissions()]);
+        await Promise.all([fetchStats(), fetchCategories(), fetchAdminSubmissions(), fetchAdminUsers()]);
       } else if (activeTab === "submissions") {
         await fetchAdminSubmissions();
-      } else if (activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN")) {
+      } else if (activeTab === "users") {
         await fetchAdminUsers();
       } else if (activeTab === "admins" && admin.role === "SUPER_ADMIN") {
         await fetchAdminsList();
@@ -232,9 +234,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
       fetchStats();
       fetchCategories();
       fetchAdminSubmissions();
+      fetchAdminUsers();
     } else if (activeTab === "submissions") {
       fetchAdminSubmissions();
-    } else if (activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN")) {
+    } else if (activeTab === "users") {
       fetchAdminUsers();
     } else if (activeTab === "admins" && admin.role === "SUPER_ADMIN") {
       fetchAdminsList();
@@ -251,9 +254,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
       if (activeTab === "dashboard") {
         fetchStats();
         fetchAdminSubmissions();
+        fetchAdminUsers();
       } else if (activeTab === "submissions") {
         fetchAdminSubmissions();
-      } else if (activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN")) {
+      } else if (activeTab === "users") {
         fetchAdminUsers();
       }
     }, 6000);
@@ -719,6 +723,34 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     }
   };
 
+  // Export registered users to CSV
+  const handleExportUsersCsv = () => {
+    if (users.length === 0) {
+      showFeedback("error", "No users to export in current list");
+      return;
+    }
+    const headers = ["Follower ID", "Full Name", "Age", "State", "WhatsApp Number", "Submissions Count", "Account Status", "Registered Date"];
+    const rows = users.map((u) => [
+      `"${u.follower_id}"`,
+      `"${(u.name || '').replace(/"/g, '""')}"`,
+      u.age ?? "",
+      `"${(u.state || '').replace(/"/g, '""')}"`,
+      `"${u.whatsapp_number || ''}"`,
+      u.submission_count ?? 0,
+      `"${u.account_status}"`,
+      `"${new Date(u.created_at).toLocaleDateString()}"`,
+    ]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `fuahse_registered_users_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showFeedback("success", `Exported ${users.length} registered users to CSV`);
+  };
+
   // Copy SQL schema
   const handleCopySql = () => {
     const sqlContent = `-- Complete Supabase SQL Schema for FUAHSE_🅸🅽🆂🅸🅳🅴🆁 (The Campus Mirror)
@@ -1003,21 +1035,29 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
           )}
         </button>
 
-        {/* Users Tab (SUPER ADMIN & USER ADMIN ONLY) */}
-        {(admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN") && (
-          <button
-            type="button"
-            onClick={() => setActiveTab("users")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === "users"
-                ? "bg-blue-600 text-white shadow-xs"
-                : "text-slate-600 hover:text-blue-900 hover:bg-blue-50/50"
-            }`}
-          >
-            <Users className={`w-4 h-4 ${activeTab === "users" ? "text-white" : "text-blue-600"}`} />
-            <span>User Management</span>
-          </button>
-        )}
+        {/* Users Tab (Accessible to all admins) */}
+        <button
+          type="button"
+          id="tab-admin-users"
+          onClick={() => setActiveTab("users")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+            activeTab === "users"
+              ? "bg-blue-600 text-white shadow-xs"
+              : "text-slate-600 hover:text-blue-900 hover:bg-blue-50/50"
+          }`}
+        >
+          <Users className={`w-4 h-4 ${activeTab === "users" ? "text-white" : "text-blue-600"}`} />
+          <span>Registered Users</span>
+          {stats?.totalUsers ? (
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === "users" ? "bg-white text-blue-900" : "bg-blue-100 text-blue-900"
+              }`}
+            >
+              {stats.totalUsers}
+            </span>
+          ) : null}
+        </button>
 
         {/* Categories Tab (Super Admin) */}
         {admin.role === "SUPER_ADMIN" && (
@@ -1109,19 +1149,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
             {/* Horizontal Scrollable Metrics List */}
             <div className="flex items-stretch gap-3 overflow-x-auto pb-2 scrollbar-thin">
               {/* Registered Followers Card */}
-              <div className="min-w-[180px] sm:min-w-[200px] flex-1 p-4 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex flex-col justify-between">
+              <div
+                onClick={() => setActiveTab("users")}
+                className="min-w-[180px] sm:min-w-[200px] flex-1 p-4 rounded-2xl bg-blue-50/80 hover:bg-blue-100/80 border border-blue-200/80 flex flex-col justify-between cursor-pointer transition-colors group"
+                title="Click to view all registered users"
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-blue-900">
                     Registered Users
                   </span>
-                  <Users className="w-4 h-4 text-blue-600" />
+                  <Users className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
                 </div>
                 <div className="mt-2">
                   <div className="text-3xl font-black text-blue-950">
                     {stats?.totalUsers ?? 0}
                   </div>
                   <div className="text-[11px] font-semibold text-blue-700 flex items-center gap-1 mt-0.5">
-                    <span>+{stats?.newUsersToday ?? 0} today</span>
+                    <span>+{stats?.newUsersToday ?? 0} today • View Directory →</span>
                   </div>
                 </div>
               </div>
@@ -1439,6 +1483,105 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
             )}
           </div>
 
+          {/* SECTION D: Registered Followers & Community Overview */}
+          <div className="bg-white border border-blue-100 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wider text-blue-950 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-600" />
+                  Registered Followers Directory ({stats?.totalUsers ?? users.length} Total)
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Verified campus community members registered on FUAHSE Insider
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportUsersCsv}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 transition-colors cursor-pointer"
+                  title="Download users directory as CSV"
+                >
+                  <Download className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Export CSV</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("users")}
+                  className="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View All Users ({userTotal || users.length})</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {users.length === 0 ? (
+              <div className="p-6 text-center bg-slate-50 border border-slate-200 rounded-2xl">
+                <Users className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
+                <p className="text-xs text-slate-500">No registered users recorded yet.</p>
+              </div>
+            ) : (
+              <div className="flex gap-3.5 overflow-x-auto pb-3 pt-1 scrollbar-thin">
+                {users.slice(0, 10).map((u) => (
+                  <div
+                    key={u.id}
+                    className="min-w-[240px] sm:min-w-[260px] p-4 rounded-2xl bg-slate-50 border border-blue-100/90 shadow-xs flex flex-col justify-between shrink-0 space-y-3"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-mono font-bold text-xs text-blue-800 bg-blue-100/80 px-2 py-0.5 rounded-md">
+                          {u.follower_id}
+                        </span>
+                        <span
+                          className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                            u.account_status === "active"
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                              : "bg-rose-100 text-rose-800 border border-rose-200"
+                          }`}
+                        >
+                          {u.account_status}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-black text-slate-900 truncate" title={u.name}>
+                        {u.name}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {u.state} • {u.age} yrs • Joined {new Date(u.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-1.5">
+                      <a
+                        href={`https://wa.me/${u.whatsapp_number.replace(/[^\d]/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold transition-colors cursor-pointer"
+                        title="Chat with user on WhatsApp"
+                      >
+                        <MessageCircle className="w-3 h-3 text-emerald-600" />
+                        <span>WhatsApp</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSubSearch(u.follower_id);
+                          setActiveTab("submissions");
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold transition-colors cursor-pointer"
+                        title="View user submissions"
+                      >
+                        <FileText className="w-3 h-3 text-blue-600" />
+                        <span>{u.submission_count ?? 0} Posts</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Role Access Summary Banner */}
           <div className="bg-white border border-blue-100 rounded-3xl p-6 space-y-2 shadow-sm">
             <h3 className="text-xs font-bold text-blue-950 uppercase tracking-wider">
@@ -1715,13 +1858,66 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
       )}
 
       {/* ------------------------------------------------------------- */}
-      {/* 3. USER MANAGEMENT TAB (Super Admin & User Admin)             */}
+      {/* 3. USER MANAGEMENT TAB (Accessible to all Admins)             */}
       {/* ------------------------------------------------------------- */}
-      {activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN") && (
-        <div className="bg-white border border-blue-100 rounded-3xl p-6 space-y-5 shadow-sm">
+      {activeTab === "users" && (
+        <div className="bg-white border border-blue-100 rounded-3xl p-6 space-y-6 shadow-sm">
+          {/* Top User Metrics Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-200/80 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-900">Total Followers</span>
+                <Users className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-blue-950">{userTotal || users.length}</div>
+                <div className="text-[10px] font-semibold text-blue-700 mt-0.5">+{stats?.newUsersToday ?? 0} registered today</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-900">Active Accounts</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-emerald-950">
+                  {users.filter((u) => u.account_status === "active").length}
+                </div>
+                <div className="text-[10px] font-semibold text-emerald-700 mt-0.5">Verified & Submitting</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-rose-900">Deactivated</span>
+                <XCircle className="w-4 h-4 text-rose-600" />
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-rose-950">
+                  {users.filter((u) => u.account_status !== "active").length}
+                </div>
+                <div className="text-[10px] font-semibold text-rose-700 mt-0.5">Suspended / Inactive</div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-200/80 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-900">Total Stories</span>
+                <FileText className="w-4 h-4 text-purple-600" />
+              </div>
+              <div className="mt-2">
+                <div className="text-2xl font-black text-purple-950">
+                  {users.reduce((acc, curr) => acc + (curr.submission_count ?? 0), 0)}
+                </div>
+                <div className="text-[10px] font-semibold text-purple-700 mt-0.5">Submitted by Followers</div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-              <h3 className="text-xl font-black text-blue-950">Registered Users (Followers)</h3>
+              <h3 className="text-xl font-black text-blue-950">Registered Users Directory</h3>
               <p className="text-xs text-slate-500">
                 Showing {users.length} of {userTotal} registered followers in database
               </p>
@@ -1771,6 +1967,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                 ))}
               </select>
 
+              <button
+                type="button"
+                onClick={handleExportUsersCsv}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-xs font-bold transition-colors cursor-pointer"
+                title="Download user records as CSV"
+              >
+                <Download className="w-3.5 h-3.5 text-blue-600" />
+                <span>Export CSV</span>
+              </button>
+
               {admin.role === "SUPER_ADMIN" && users.length > 0 && (
                 <button
                   type="button"
@@ -1800,9 +2006,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                 <tr>
                   <th className="py-3 px-3">Follower ID</th>
                   <th className="py-3 px-3">Full Name</th>
-                  <th className="py-3 px-3">Age</th>
-                  <th className="py-3 px-3">State</th>
-                  <th className="py-3 px-3">WhatsApp Number</th>
+                  <th className="py-3 px-3">Age / State</th>
+                  <th className="py-3 px-3">WhatsApp Contact</th>
                   <th className="py-3 px-3">Submissions</th>
                   <th className="py-3 px-3">Status</th>
                   <th className="py-3 px-3">Registered</th>
@@ -1812,7 +2017,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
               <tbody className="divide-y divide-slate-100">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-8 text-center text-slate-500 font-medium">
+                    <td colSpan={8} className="py-8 text-center text-slate-500 font-medium">
                       No users found in database.
                     </td>
                   </tr>
@@ -1820,18 +2025,53 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                   users.map((u) => (
                     <tr key={u.id} className="hover:bg-blue-50/40 transition-colors">
                       <td className="py-3.5 px-3 font-mono font-bold text-blue-700">
-                        {u.follower_id}
+                        <span className="bg-blue-50 px-2 py-1 rounded-md border border-blue-100">
+                          {u.follower_id}
+                        </span>
                       </td>
-                      <td className="py-3.5 px-3 font-bold text-slate-900">
-                        {u.name}
+                      <td className="py-3.5 px-3">
+                        <div className="font-bold text-slate-900">{u.name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">ID: {u.id.slice(0, 8)}</div>
                       </td>
-                      <td className="py-3.5 px-3 text-slate-700">{u.age}</td>
-                      <td className="py-3.5 px-3 text-slate-700">{u.state}</td>
-                      <td className="py-3.5 px-3 font-mono font-semibold text-emerald-700">
-                        {u.whatsapp_number}
+                      <td className="py-3.5 px-3 text-slate-700">
+                        <div>{u.state}</div>
+                        <div className="text-[11px] text-slate-400">{u.age} yrs old</div>
                       </td>
-                      <td className="py-3.5 px-3 font-bold text-slate-900">
-                        {u.submission_count ?? 0}
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                            {u.whatsapp_number}
+                          </span>
+                          <a
+                            href={`https://wa.me/${u.whatsapp_number.replace(/[^\d]/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
+                            title={`Chat with ${u.name} on WhatsApp`}
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                            {u.submission_count ?? 0}
+                          </span>
+                          {(u.submission_count ?? 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSubSearch(u.follower_id);
+                                setActiveTab("submissions");
+                              }}
+                              className="text-[10px] font-bold text-blue-700 hover:text-blue-900 underline cursor-pointer"
+                              title="View user submissions"
+                            >
+                              View Stories
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-3">
                         <span
@@ -1853,7 +2093,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                             type="button"
                             onClick={() => handleOpenEditUser(u)}
                             className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 text-amber-700 border border-slate-200 cursor-pointer transition-colors"
-                            title="Edit User"
+                            title="Edit User Details"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
@@ -1884,6 +2124,31 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* User Directory Pagination */}
+          <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <span>Page {userPage} of {Math.max(1, Math.ceil(userTotal / 15))}</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={userPage <= 1}
+                onClick={() => setUserPage((p) => p - 1)}
+                className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30 cursor-pointer"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={userPage >= Math.ceil(userTotal / 15)}
+                onClick={() => setUserPage((p) => p + 1)}
+                className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-30 cursor-pointer"
+                title="Next Page"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}

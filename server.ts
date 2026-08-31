@@ -2030,9 +2030,9 @@ async function startServer() {
   });
 
   // ---------------------------------------------------------------------------
-  // Admin User Management (SUPER ADMIN & USER ADMIN only)
+  // Admin User Management (Accessible to all authenticated admins)
   // ---------------------------------------------------------------------------
-  app.get("/api/admin/users", authenticateAdmin, requireRoles("SUPER_ADMIN", "USER_ADMIN"), async (req, res) => {
+  app.get("/api/admin/users", authenticateAdmin, async (req, res) => {
     syncDatabaseState();
     if (supabaseClient) {
       try {
