@@ -6,10 +6,11 @@ import { MySubmissions } from "./components/MySubmissions";
 import { UserProfileView } from "./components/UserProfileView";
 import { AdminPortal } from "./components/AdminPortal";
 import { AuthModal } from "./components/AuthModal";
+import { AuthGateway } from "./components/AuthGateway";
 import { WhatsAppButton } from "./components/WhatsAppButton";
 import { UserProfile, WHATSAPP_CHANNEL_URL } from "./types";
 import { api, getUserToken, setUserToken } from "./lib/api";
-import { ShieldCheck, Heart, Radio, Lock } from "lucide-react";
+import { ShieldCheck, Heart, Radio, Lock, Loader2 } from "lucide-react";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<
@@ -18,7 +19,7 @@ export default function App() {
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalInitialMode, setAuthModalInitialMode] = useState<"login" | "register">("register");
+  const [authModalInitialMode, setAuthModalInitialMode] = useState<"login" | "register">("login");
   const [loadingInitial, setLoadingInitial] = useState(true);
 
   // Check user authentication session on mount
@@ -41,7 +42,7 @@ export default function App() {
     initUser();
   }, []);
 
-  const handleOpenAuth = (mode: "login" | "register" = "register") => {
+  const handleOpenAuth = (mode: "login" | "register" = "login") => {
     setAuthModalInitialMode(mode);
     setIsAuthModalOpen(true);
   };
@@ -60,10 +61,19 @@ export default function App() {
   const handleLogout = () => {
     setUserToken(null);
     setUser(null);
-    if (activeTab === "my-submissions" || activeTab === "profile") {
-      setActiveTab("home");
-    }
+    setActiveTab("home");
   };
+
+  if (loadingInitial) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+          <p className="text-sm font-semibold text-slate-300">Loading FUAHSE Insider...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-600 selection:text-white">
@@ -78,43 +88,57 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1">
-        {activeTab === "home" && (
-          <UserHome
-            user={user}
-            onNavigate={(tab) => setActiveTab(tab)}
-            onOpenAuth={() => handleOpenAuth("register")}
+        {/* If user is not authenticated and not on admin portal, present Login Interface First */}
+        {!user && activeTab !== "admin" ? (
+          <AuthGateway
+            initialMode="login"
+            onAuthSuccess={(profile, token) => {
+              handleAuthSuccess(profile, token);
+              setActiveTab("home");
+            }}
+            onNavigateAdmin={() => setActiveTab("admin")}
           />
-        )}
+        ) : (
+          <>
+            {activeTab === "home" && (
+              <UserHome
+                user={user}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onOpenAuth={() => handleOpenAuth("register")}
+              />
+            )}
 
-        {activeTab === "submit" && (
-          <SubmitContent
-            user={user}
-            onOpenAuth={() => handleOpenAuth("register")}
-            onNavigateMySubmissions={() => setActiveTab("my-submissions")}
-            onSubmissionComplete={() => setActiveTab("my-submissions")}
-            onNavigateHome={() => setActiveTab("home")}
-          />
-        )}
+            {activeTab === "submit" && (
+              <SubmitContent
+                user={user}
+                onOpenAuth={() => handleOpenAuth("register")}
+                onNavigateMySubmissions={() => setActiveTab("my-submissions")}
+                onSubmissionComplete={() => setActiveTab("my-submissions")}
+                onNavigateHome={() => setActiveTab("home")}
+              />
+            )}
 
-        {activeTab === "my-submissions" && (
-          <MySubmissions
-            user={user}
-            onOpenAuth={() => handleOpenAuth("login")}
-            onNavigateSubmit={() => setActiveTab("submit")}
-          />
-        )}
+            {activeTab === "my-submissions" && (
+              <MySubmissions
+                user={user}
+                onOpenAuth={() => handleOpenAuth("login")}
+                onNavigateSubmit={() => setActiveTab("submit")}
+              />
+            )}
 
-        {activeTab === "profile" && user && (
-          <UserProfileView
-            user={user}
-            onUpdateSuccess={(updated) => setUser(updated)}
-            onLogout={handleLogout}
-            onNavigateSubmissions={() => setActiveTab("my-submissions")}
-          />
-        )}
+            {activeTab === "profile" && user && (
+              <UserProfileView
+                user={user}
+                onUpdateSuccess={(updated) => setUser(updated)}
+                onLogout={handleLogout}
+                onNavigateSubmissions={() => setActiveTab("my-submissions")}
+              />
+            )}
 
-        {activeTab === "admin" && (
-          <AdminPortal onExitToPublic={() => setActiveTab("home")} />
+            {activeTab === "admin" && (
+              <AdminPortal onExitToPublic={() => setActiveTab("home")} />
+            )}
+          </>
         )}
       </main>
 
