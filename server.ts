@@ -20,8 +20,43 @@ import {
 dotenv.config();
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
-// Internal cryptographic token signing key (managed automatically)
-const AUTH_SECRET = "fuahse-insider-campus-mirror-secret-key-2026";
+// Cryptographic token signing key (configurable via AUTH_SECRET or JWT_SECRET)
+const AUTH_SECRET = process.env.AUTH_SECRET || process.env.JWT_SECRET || "fuahse-insider-campus-mirror-secret-key-2026";
+
+// ---------------------------------------------------------------------------
+// Realtime Server-Sent Events (SSE) Manager
+// ---------------------------------------------------------------------------
+interface SSEClient {
+  id: string;
+  res: Response;
+  type: "admin" | "user";
+  userId?: string;
+  followerId?: string;
+  adminRole?: AdminRole;
+}
+
+const sseClients = new Set<SSEClient>();
+
+function broadcastRealtimeEvent(event: {
+  type: "NEW_SUBMISSION" | "SUBMISSION_UPDATED" | "SUBMISSION_DELETED" | "NEW_USER" | "USER_UPDATED" | "STATS_UPDATED";
+  data?: any;
+  targetUser?: string;
+}) {
+  const payload = `data: ${JSON.stringify(event)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      if (client.type === "admin") {
+        client.res.write(payload);
+      } else if (client.type === "user") {
+        if (!event.targetUser || event.targetUser === client.userId || event.targetUser === client.followerId) {
+          client.res.write(payload);
+        }
+      }
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Native Crypto Token Management (No external JWT dependencies)
@@ -304,15 +339,19 @@ function hashPassword(password: string): string {
   return crypto.createHash("sha256").update(password + "fuahse_salt_2026").digest("hex");
 }
 
+const INITIAL_ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@fuahse.com";
+const INITIAL_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Admin@12345";
+const INITIAL_ADMIN_NAME = process.env.ADMIN_NAME || "Lead Editorial Admin";
+
 const DEFAULT_SUPER_ADMIN: AdminAccount & { password_hash: string } = {
   id: "admin-master-001",
-  name: "Lead Editorial Admin",
-  email: "admin@fuahse.com",
+  name: INITIAL_ADMIN_NAME,
+  email: INITIAL_ADMIN_EMAIL.toLowerCase().trim(),
   role: "SUPER_ADMIN",
   status: "active",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
-  password_hash: hashPassword("Admin@12345"),
+  password_hash: hashPassword(INITIAL_ADMIN_PASSWORD),
 };
 
 const memoryStore: InMemStore = {
@@ -473,6 +512,17 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
+  // Ensure uploads directory exists on disk for high-performance static media serving
+  const uploadsDir = path.join(process.cwd(), "public", "uploads");
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  } catch (err) {
+    console.error("[Uploads Directory Init]", err);
+  }
+  app.use("/uploads", express.static(uploadsDir));
+
   // Security Headers
   app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -538,6 +588,72 @@ async function startServer() {
       next();
     };
   };
+
+  // ---------------------------------------------------------------------------
+  // Realtime Server-Sent Events (SSE) Endpoints
+  // ---------------------------------------------------------------------------
+  app.get("/api/admin/realtime", (req, res) => {
+    const token = (req.query.token as string) || (req.headers.authorization ? req.headers.authorization.split(" ")[1] : "");
+    const decoded = verifyAuthToken<{ adminId: string; email: string; role: AdminRole; type: "admin" }>(token);
+    if (!decoded || decoded.type !== "admin") {
+      res.status(401).json({ error: "Unauthorized SSE connection" });
+      return;
+    }
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const client: SSEClient = {
+      id: crypto.randomUUID(),
+      res,
+      type: "admin",
+      adminRole: decoded.role,
+    };
+
+    sseClients.add(client);
+    res.write(`data: ${JSON.stringify({ type: "CONNECTED", message: "Admin realtime channel connected" })}\n\n`);
+
+    const keepAlive = setInterval(() => {
+      res.write(": keepalive\n\n");
+    }, 25000);
+
+    req.on("close", () => {
+      clearInterval(keepAlive);
+      sseClients.delete(client);
+    });
+  });
+
+  app.get("/api/realtime", (req, res) => {
+    const token = (req.query.token as string) || (req.headers.authorization ? req.headers.authorization.split(" ")[1] : "");
+    const decoded = verifyAuthToken<{ userId: string; followerId: string; type: "user" }>(token);
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const client: SSEClient = {
+      id: crypto.randomUUID(),
+      res,
+      type: "user",
+      userId: decoded?.userId,
+      followerId: decoded?.followerId,
+    };
+
+    sseClients.add(client);
+    res.write(`data: ${JSON.stringify({ type: "CONNECTED", message: "Realtime stream active" })}\n\n`);
+
+    const keepAlive = setInterval(() => {
+      res.write(": keepalive\n\n");
+    }, 25000);
+
+    req.on("close", () => {
+      clearInterval(keepAlive);
+      sseClients.delete(client);
+    });
+  });
 
   // ---------------------------------------------------------------------------
   // API Routes
@@ -804,6 +920,9 @@ async function startServer() {
       followerId: profile.follower_id,
       type: "user",
     }, 30 * 24 * 3600);
+
+    broadcastRealtimeEvent({ type: "NEW_USER", data: profile });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
     res.status(201).json({
       message: "Registration successful",
@@ -1152,6 +1271,9 @@ async function startServer() {
       }
     }
 
+    broadcastRealtimeEvent({ type: "NEW_SUBMISSION", data: submission });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
+
     res.status(201).json({
       message: "Submission received successfully. Our team will review it shortly.",
       submission,
@@ -1290,6 +1412,8 @@ async function startServer() {
       }
     }
 
+    broadcastRealtimeEvent({ type: "SUBMISSION_UPDATED", data: sub });
+
     res.json({ message: "Submission updated successfully", submission: sub });
   });
 
@@ -1320,6 +1444,9 @@ async function startServer() {
         console.error("[Supabase Delete Submission Error]", err);
       }
     }
+
+    broadcastRealtimeEvent({ type: "SUBMISSION_DELETED", data: { id } });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
     res.json({ success: true, message: "Submission deleted successfully" });
   });
@@ -1354,37 +1481,51 @@ async function startServer() {
       return;
     }
 
-    const cleanExt = (file_name ? path.extname(file_name) : "").replace(/[^a-zA-Z0-9]/g, "") || (file_type === "audio" ? "webm" : file_type === "image" ? "jpg" : file_type === "file" ? "pdf" : "mp4");
-    const uniqueFileName = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${cleanExt}`;
+    const cleanExt = (file_name ? path.extname(file_name) : "").replace(/[^a-zA-Z0-9.]/g, "") || (file_type === "audio" ? ".webm" : file_type === "image" ? ".jpg" : file_type === "file" ? ".pdf" : ".mp4");
+    const normalizedExt = cleanExt.startsWith(".") ? cleanExt : `.${cleanExt}`;
+    const uniqueFileName = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${normalizedExt}`;
     const storagePath = `submissions/${file_type}/${uniqueFileName}`;
+    const localFilePath = path.join(uploadsDir, uniqueFileName);
 
-    let publicUrl = file_data; // Default: base64/data URI if direct
+    let publicUrl = `/uploads/${uniqueFileName}`;
 
-    if (supabaseClient && file_data.startsWith("data:")) {
+    // Write binary buffer to disk for instant static media serving
+    if (file_data.startsWith("data:")) {
       try {
         const base64Data = file_data.split(",")[1];
         const buffer = Buffer.from(base64Data, "base64");
+        fs.writeFileSync(localFilePath, buffer);
 
-        const { data: uploadData, error: uploadErr } = await supabaseClient.storage
-          .from("submissions-media")
-          .upload(storagePath, buffer, {
-            contentType: mime_type || "application/octet-stream",
-            upsert: false,
-          });
+        // Mirror to Supabase storage if connected
+        if (supabaseClient) {
+          try {
+            const { data: uploadData, error: uploadErr } = await supabaseClient.storage
+              .from("submissions-media")
+              .upload(storagePath, buffer, {
+                contentType: mime_type || "application/octet-stream",
+                upsert: true,
+              });
 
-        if (!uploadErr && uploadData) {
-          const { data: urlData } = supabaseClient.storage
-            .from("submissions-media")
-            .getPublicUrl(storagePath);
-          if (urlData && urlData.publicUrl) {
-            publicUrl = urlData.publicUrl;
+            if (!uploadErr && uploadData) {
+              const { data: urlData } = supabaseClient.storage
+                .from("submissions-media")
+                .getPublicUrl(storagePath);
+              if (urlData && urlData.publicUrl) {
+                publicUrl = urlData.publicUrl;
+              }
+            } else {
+              console.warn("[Supabase Storage Upload Info, using local static URL]:", uploadErr?.message);
+            }
+          } catch (storageErr) {
+            console.error("[Supabase Storage Upload Error]:", storageErr);
           }
-        } else {
-          console.warn("[Supabase Storage Upload Warning, fallback to direct URI]:", uploadErr?.message);
         }
-      } catch (err) {
-        console.error("[Supabase Storage Upload Error]:", err);
+      } catch (writeErr) {
+        console.error("[File Write Error, fallback to base64]", writeErr);
+        publicUrl = file_data;
       }
+    } else {
+      publicUrl = file_data;
     }
 
     res.status(201).json({
@@ -1761,6 +1902,9 @@ async function startServer() {
       { status, follower_id: sub.follower_id }
     );
 
+    broadcastRealtimeEvent({ type: "SUBMISSION_UPDATED", data: sub });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
+
     res.json({ message: `Submission marked as ${status}`, submission: sub });
   });
 
@@ -1806,6 +1950,8 @@ async function startServer() {
       { follower_id: sub.follower_id }
     );
 
+    broadcastRealtimeEvent({ type: "SUBMISSION_UPDATED", data: sub });
+
     res.json({ message: "Content updated", submission: sub });
   });
 
@@ -1838,6 +1984,9 @@ async function startServer() {
       id,
       { follower_id: removed.follower_id }
     );
+
+    broadcastRealtimeEvent({ type: "SUBMISSION_DELETED", data: { id } });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
     res.json({ success: true, message: "Submission deleted" });
   });
@@ -1987,6 +2136,8 @@ async function startServer() {
       { follower_id: profile.follower_id }
     );
 
+    broadcastRealtimeEvent({ type: "USER_UPDATED", data: profile, targetUser: profile.id });
+
     res.json({ message: "User profile updated", profile });
   });
 
@@ -2030,6 +2181,9 @@ async function startServer() {
       id,
       { follower_id: profile.follower_id, new_status: status }
     );
+
+    broadcastRealtimeEvent({ type: "USER_UPDATED", data: profile, targetUser: profile.id });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
     res.json({ message: `User account ${status}`, profile });
   });

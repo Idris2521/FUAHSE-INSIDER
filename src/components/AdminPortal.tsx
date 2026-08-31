@@ -246,7 +246,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
       fetchSettings();
     }
 
-    // Auto-polling interval: live sync database state across devices every 4 seconds
+    // Auto-polling interval: live sync database state across devices every 6 seconds as fallback
     const interval = setInterval(() => {
       if (activeTab === "dashboard") {
         fetchStats();
@@ -256,7 +256,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
       } else if (activeTab === "users" && (admin.role === "SUPER_ADMIN" || admin.role === "USER_ADMIN")) {
         fetchAdminUsers();
       }
-    }, 4000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [
@@ -272,6 +272,65 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     userStateFilter,
     userStatusFilter,
   ]);
+
+  // Realtime Server-Sent Events (SSE) listener for instant live updates
+  useEffect(() => {
+    if (!admin) return;
+    const token = getAdminToken();
+    if (!token) return;
+
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`/api/admin/realtime?token=${encodeURIComponent(token)}`);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === "NEW_SUBMISSION" && payload.data) {
+            setSubmissions((prev) => [payload.data, ...prev.filter((s) => s.id !== payload.data.id)]);
+            setSubTotal((prev) => prev + 1);
+            fetchStats();
+          } else if (payload.type === "SUBMISSION_UPDATED" && payload.data) {
+            setSubmissions((prev) =>
+              prev.map((s) => (s.id === payload.data.id ? { ...s, ...payload.data } : s))
+            );
+            if (selectedSub?.id === payload.data.id) {
+              setSelectedSub((prev) => (prev ? { ...prev, ...payload.data } : null));
+            }
+            fetchStats();
+          } else if (payload.type === "SUBMISSION_DELETED" && payload.data) {
+            setSubmissions((prev) => prev.filter((s) => s.id !== payload.data.id));
+            setSubTotal((prev) => Math.max(0, prev - 1));
+            fetchStats();
+          } else if (payload.type === "NEW_USER" && payload.data) {
+            setUsers((prev) => [payload.data, ...prev.filter((u) => u.id !== payload.data.id)]);
+            setUserTotal((prev) => prev + 1);
+            fetchStats();
+          } else if (payload.type === "USER_UPDATED" && payload.data) {
+            setUsers((prev) =>
+              prev.map((u) => (u.id === payload.data.id ? { ...u, ...payload.data } : u))
+            );
+          } else if (payload.type === "STATS_UPDATED") {
+            fetchStats();
+          }
+        } catch (err) {
+          console.error("Error processing SSE message:", err);
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+      };
+    } catch (err) {
+      console.warn("SSE connection error:", err);
+    }
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+    };
+  }, [admin, selectedSub]);
 
   const showFeedback = (type: "success" | "error", text: string) => {
     setFeedback({ type, text });

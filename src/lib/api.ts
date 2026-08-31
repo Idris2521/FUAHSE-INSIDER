@@ -161,7 +161,7 @@ export const api = {
     file_type: string;
     mime_type?: string;
   }) =>
-    request<{ file_url: string; storage_path: string; file_type: string; mime_type?: string }>(
+    request<{ file_url: string; file_name?: string; storage_path: string; file_type: string; mime_type?: string }>(
       "/api/upload-media",
       {
         method: "POST",
