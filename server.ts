@@ -38,7 +38,7 @@ interface SSEClient {
 const sseClients = new Set<SSEClient>();
 
 function broadcastRealtimeEvent(event: {
-  type: "NEW_SUBMISSION" | "SUBMISSION_UPDATED" | "SUBMISSION_DELETED" | "NEW_USER" | "USER_UPDATED" | "STATS_UPDATED";
+  type: "NEW_SUBMISSION" | "SUBMISSION_UPDATED" | "SUBMISSION_DELETED" | "NEW_USER" | "USER_UPDATED" | "USER_DELETED" | "USERS_CLEARED" | "STATS_UPDATED";
   data?: any;
   targetUser?: string;
 }) {
@@ -2186,6 +2186,72 @@ async function startServer() {
     broadcastRealtimeEvent({ type: "STATS_UPDATED" });
 
     res.json({ message: `User account ${status}`, profile });
+  });
+
+  app.delete("/api/admin/users/:id", authenticateAdmin, requireRoles("SUPER_ADMIN", "USER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
+    const admin = (req as any).admin;
+    const { id } = req.params;
+
+    const profileIndex = memoryStore.profiles.findIndex((p) => p.id === id);
+    if (profileIndex === -1) {
+      res.status(404).json({ error: "User profile not found" });
+      return;
+    }
+
+    const deletedUser = memoryStore.profiles.splice(profileIndex, 1)[0];
+    saveDatabaseToFile();
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from("profiles").delete().eq("id", id);
+      } catch (err) {
+        console.error("[Supabase Delete User Error]", err);
+      }
+    }
+
+    await recordAudit(
+      { id: admin.adminId, email: admin.email, role: admin.role },
+      "DELETE_USER_PROFILE",
+      "USER_PROFILE",
+      id,
+      { follower_id: deletedUser.follower_id, name: deletedUser.name, whatsapp_number: deletedUser.whatsapp_number }
+    );
+
+    broadcastRealtimeEvent({ type: "USER_DELETED", data: { id, follower_id: deletedUser.follower_id } });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
+
+    res.json({ success: true, message: `User ${deletedUser.follower_id} (${deletedUser.name}) deleted successfully` });
+  });
+
+  app.post("/api/admin/users/clear-all", authenticateAdmin, requireRoles("SUPER_ADMIN"), async (req, res) => {
+    syncDatabaseState();
+    const admin = (req as any).admin;
+
+    const count = memoryStore.profiles.length;
+    memoryStore.profiles = [];
+    saveDatabaseToFile();
+
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from("profiles").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      } catch (err) {
+        console.error("[Supabase Clear All Users Error]", err);
+      }
+    }
+
+    await recordAudit(
+      { id: admin.adminId, email: admin.email, role: admin.role },
+      "CLEAR_ALL_USERS",
+      "USER_PROFILE",
+      undefined,
+      { deleted_count: count }
+    );
+
+    broadcastRealtimeEvent({ type: "USERS_CLEARED", data: { count } });
+    broadcastRealtimeEvent({ type: "STATS_UPDATED" });
+
+    res.json({ success: true, message: `Cleared all ${count} registered user profiles from database`, count });
   });
 
   // ---------------------------------------------------------------------------

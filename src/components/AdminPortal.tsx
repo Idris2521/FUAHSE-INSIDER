@@ -689,6 +689,36 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
     }
   };
 
+  const handleDeleteUser = async (u: UserProfile) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user ${u.follower_id} (${u.name})? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      const res = await api.deleteUserAdmin(u.id);
+      setUsers((prev) => prev.filter((usr) => usr.id !== u.id));
+      setUserTotal((prev) => Math.max(0, prev - 1));
+      fetchStats();
+      showFeedback("success", res.message || `User ${u.follower_id} deleted successfully`);
+    } catch (err: any) {
+      showFeedback("error", err.message || "Failed to delete user");
+    }
+  };
+
+  const handleClearAllUsers = async () => {
+    if (!window.confirm("WARNING: Are you sure you want to permanently delete and CLEAR ALL registered users from the database? This action is irreversible.")) {
+      return;
+    }
+    try {
+      const res = await api.clearAllUsersAdmin();
+      setUsers([]);
+      setUserTotal(0);
+      fetchStats();
+      showFeedback("success", res.message || "All user records cleared successfully");
+    } catch (err: any) {
+      showFeedback("error", err.message || "Failed to clear users");
+    }
+  };
+
   // Copy SQL schema
   const handleCopySql = () => {
     const sqlContent = `-- Complete Supabase SQL Schema for FUAHSE_🅸🅽🆂🅸🅳🅴🆁 (The Campus Mirror)
@@ -1741,10 +1771,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                 ))}
               </select>
 
+              {admin.role === "SUPER_ADMIN" && users.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearAllUsers}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-colors cursor-pointer"
+                  title="Permanently clear and delete all registered users"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Clear All Users</span>
+                </button>
+              )}
+
               <button
                 type="button"
                 onClick={fetchAdminUsers}
                 className="p-2 rounded-xl bg-slate-100 hover:bg-blue-50 text-blue-800 border border-slate-200 cursor-pointer"
+                title="Refresh users list"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
@@ -1770,7 +1813,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-8 text-center text-slate-500 font-medium">
-                      No users found.
+                      No users found in database.
                     </td>
                   </tr>
                 ) : (
@@ -1809,7 +1852,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                           <button
                             type="button"
                             onClick={() => handleOpenEditUser(u)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 text-amber-700 border border-slate-200 cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 text-amber-700 border border-slate-200 cursor-pointer transition-colors"
                             title="Edit User"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -1822,9 +1865,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onExitToPublic }) => {
                                 ? "bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200"
                                 : "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200"
                             }`}
-                            title={u.account_status === "active" ? "Deactivate" : "Activate"}
+                            title={u.account_status === "active" ? "Deactivate User" : "Activate User"}
                           >
                             {u.account_status === "active" ? "Deactivate" : "Activate"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteUser(u)}
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 cursor-pointer transition-colors"
+                            title="Permanently Delete User"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

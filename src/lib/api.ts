@@ -261,6 +261,14 @@ export const api = {
       method: "PUT",
       body: JSON.stringify({ status }),
     }, "admin"),
+  deleteUserAdmin: (id: string) =>
+    request<{ success: boolean; message: string }>(`/api/admin/users/${id}`, {
+      method: "DELETE",
+    }, "admin"),
+  clearAllUsersAdmin: () =>
+    request<{ success: boolean; message: string; count: number }>("/api/admin/users/clear-all", {
+      method: "POST",
+    }, "admin"),
 
   // Super Admin - Admins Management
   getAdmins: () => request<{ admins: AdminAccount[] }>("/api/admin/admins", {}, "admin"),
